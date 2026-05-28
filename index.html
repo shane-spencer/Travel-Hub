@@ -1003,11 +1003,13 @@ async function genShots(){
   const q=document.getElementById('gen-input').value.trim();if(!q)return;
   const res=document.getElementById('gen-results');
   res.innerHTML=`<div style="padding:14px 0"><div class="dots"><span></span><span></span><span></span></div><p style="font-size:12px;color:var(--text2);margin-top:8px">Generating shot guide for: <em>${q}</em></p></div>`;
-  const prompt=`Travel photography advisor for a specific traveler: Black man from Barbados, 70+ countries, solo, people-in-frame storyteller, loves bold colour and street art, atmospheric night shots, drone/aerial, goes beyond tourist highlights.\n\nFor this location: "${q}"\n\nReturn ONLY valid JSON array (no markdown): [{"name":"shot name","location":"city, country","type":"colour|architecture|nature|atmospheric|aerial","desc":"2-3 sentences tailored to this traveler","timing":"best time and why","swatches":["#hex1","#hex2","#hex3"],"outfit":"specific outfit advice"}]`;
+  const prompt=`Travel photography advisor for a specific traveler: Black man from Barbados, 70+ countries, solo, people-in-frame storyteller, loves bold colour and street art, atmospheric night shots, drone/aerial, goes beyond tourist highlights.\n\nFor this location: "${q}"\n\nReturn ONLY a valid JSON array (no markdown, no backticks, no explanation): [{"name":"shot name","location":"city, country","type":"colour","desc":"2-3 sentences tailored to this traveler","timing":"best time and why","swatches":["#hex1","#hex2","#hex3"],"outfit":"specific outfit advice"}]\n\nType must be one of: colour, architecture, nature, atmospheric, aerial. Return 3-4 shots.`;
   try{
     const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
     const data=await r.json();
-    const shots=JSON.parse((data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim());
+    if(!data.content){res.innerHTML=`<p style="font-size:12px;color:var(--red);padding:12px 0">API error: ${JSON.stringify(data)}</p>`;return;}
+    const raw=data.content[0].text.replace(/```json|```/g,'').trim();
+    const shots=JSON.parse(raw);
     const tc={colour:'rgba(200,169,110,.15)',architecture:'rgba(91,143,212,.15)',nature:'rgba(143,184,154,.15)',atmospheric:'rgba(100,80,200,.15)',aerial:'rgba(143,184,154,.15)'};
     const tt={colour:'#c8a96e',architecture:'#5b8fd4',nature:'#8fb89a',atmospheric:'#9b8fd4',aerial:'#8fb89a'};
     res.innerHTML=shots.map(s=>{
@@ -1026,7 +1028,7 @@ async function genShots(){
         </div>
       </div></div>`;
     }).join('');
-  }catch(e){res.innerHTML=`<p style="font-size:12px;color:var(--text3);padding:12px 0">Error. Please try again.</p>`;}
+  }catch(e){res.innerHTML=`<p style="font-size:12px;color:var(--red);padding:12px 0">Error: ${e.message}. Please try again.</p>`;}
 }
 
 // ═══ CAPTIONS ═══════════════════════════════════════════════════
@@ -1037,18 +1039,20 @@ async function genCaption(){
   const res=document.getElementById('cap-results');
   res.innerHTML=`<div style="padding:14px 0"><div class="dots"><span></span><span></span><span></span></div><p style="font-size:12px;color:var(--text2);margin-top:8px">Generating caption for: <em>${loc}</em></p></div>`;
   const tones={reflective:'contemplative and personal — stood somewhere ancient and felt something real',bold:'confident and punchy — short declarative sentences, strong energy, no fluff',minimal:'extremely short, almost poetic — one or two lines max, let the image do the talking',storytelling:'narrative-driven — draws the reader in like the opening of a short story'};
-  const prompt=`Write an Instagram caption for this traveler: Black man from Barbados, 70+ countries, solo, goes deep — not a tourist. Tone: ${tones[capTone]}.\n\nLocation: "${loc}"\n\nReturn ONLY valid JSON (no markdown): {"caption":"2-4 sentences, first person, ${capTone} tone, no emojis","hashtags":["#tag1","#tag2","#tag3","#tag4","#tag5"],"history":"2-3 sentences of genuinely interesting history most people don't know — not Wikipedia basics","fun_fact":"one surprising little-known fact about this specific place"}`;
+  const prompt=`Write an Instagram caption for this traveler: Black man from Barbados, 70+ countries, solo, goes deep — not a tourist. Tone: ${tones[capTone]}.\n\nLocation: "${loc}"\n\nReturn ONLY valid JSON (no markdown, no backticks): {"caption":"2-4 sentences, first person, no emojis","hashtags":["#tag1","#tag2","#tag3","#tag4","#tag5"],"history":"2-3 sentences of genuinely interesting history most people do not know","fun_fact":"one surprising little-known fact about this specific place"}`;
   try{
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
     const data=await r.json();
-    const cap=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+    if(!data.content){res.innerHTML=`<p style="font-size:12px;color:var(--red);padding:12px 0">API error: ${JSON.stringify(data)}</p>`;return;}
+    const raw=data.content[0].text.replace(/```json|```/g,'').trim();
+    const cap=JSON.parse(raw);
     const hh=(cap.hashtags||[]).map(h=>`<span class="pill p-blue" style="font-size:11px">${h}</span>`).join('');
-    const copyText=(cap.caption||'')+'\n\n'+(cap.hashtags||[]).join(' ');
+    window._capCopyText=(cap.caption||'')+'\n\n'+(cap.hashtags||[]).join(' ');
     res.innerHTML=`
       <div class="card" style="margin-bottom:10px;border-color:rgba(200,169,110,.3)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Caption · ${capTone}</div>
-          <button onclick="navigator.clipboard.writeText(${JSON.stringify(copyText)}).then(()=>this.textContent='Copied!').catch(()=>this.textContent='Copy failed')"><i class="ti ti-copy" style="font-size:11px;vertical-align:-1px;margin-right:3px"></i>Copy all</button>
+          <button id="cap-copy-btn" onclick="navigator.clipboard.writeText(window._capCopyText).then(()=>{document.getElementById('cap-copy-btn').textContent='Copied!'}).catch(()=>{document.getElementById('cap-copy-btn').textContent='Copy failed'})"><i class="ti ti-copy" style="font-size:11px;vertical-align:-1px;margin-right:3px"></i>Copy all</button>
         </div>
         <div style="font-size:15px;color:var(--text);line-height:1.85;font-family:'DM Serif Display',serif;margin-bottom:14px">${cap.caption||''}</div>
         <div class="pill-row">${hh}</div>
@@ -1057,7 +1061,7 @@ async function genCaption(){
         <div class="card"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">Historical context</div><div style="font-size:12px;color:var(--text2);line-height:1.7">${cap.history||''}</div></div>
         <div class="card"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">Unexpected fact</div><div style="font-size:12px;color:var(--text2);line-height:1.7">${cap.fun_fact||''}</div></div>
       </div>`;
-  }catch(e){res.innerHTML=`<p style="font-size:12px;color:var(--text3);padding:12px 0">Error. Please try again.</p>`;}
+  }catch(e){res.innerHTML=`<p style="font-size:12px;color:var(--red);padding:12px 0">Error: ${e.message}. Please try again.</p>`;}
 }
 
 // ═══ TRIP COSTS ══════════════════════════════════════════════════
