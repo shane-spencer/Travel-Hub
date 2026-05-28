@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Intelligence Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+:root{--bg:#0e0e0f;--bg2:#161618;--bg3:#1e1e21;--bg4:#252528;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--text:#f0ede8;--text2:#9a9690;--text3:#5e5b57;--accent:#c8a96e;--accent2:#8fb89a;--red:#e05a4e;--blue:#5b8fd4;--r:10px;--r2:14px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;}
+h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400;}
+.shell{display:grid;grid-template-columns:210px 1fr;min-height:100vh;}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.s-logo{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+.s-logo h1{font-size:15px;color:var(--accent);letter-spacing:.03em;}
+.s-logo p{font-size:11px;color:var(--text3);margin-top:3px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 20px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s;border-left:2px solid transparent;user-select:none;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(200,169,110,.06);}
+.nav-item i{font-size:14px;width:16px;}
+.nav-sec{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;padding:14px 20px 5px;}
+.main{padding:32px;overflow-y:auto;max-height:100vh;}
+.page{display:none;}.page.active{display:block;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:10px;}
+.page-title{font-size:26px;}.page-title span{color:var(--accent);}
+.badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;}
+.stat-l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.stat-v{font-size:22px;font-family:'DM Serif Display',serif;}
+.stat-s{font-size:11px;color:var(--text3);margin-top:2px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:10px;}
+.card-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.card-sub{font-size:12px;color:var(--text2);line-height:1.65;}
+.pill{font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;}
+.p-gold{background:rgba(200,169,110,.12);color:#c8a96e;border-color:rgba(200,169,110,.3);}
+.p-green{background:rgba(143,184,154,.12);color:#8fb89a;border-color:rgba(143,184,154,.3);}
+.p-blue{background:rgba(91,143,212,.12);color:#5b8fd4;border-color:rgba(91,143,212,.3);}
+.p-red{background:rgba(224,90,78,.12);color:#e05a4e;border-color:rgba(224,90,78,.3);}
+.p-gray{background:rgba(255,255,255,.05);color:var(--text2);border-color:var(--border);}
+.pill-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.sec{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin:22px 0 10px;display:flex;align-items:center;gap:8px;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+.trip-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px;transition:border-color .15s;}
+.trip-card:hover{border-color:var(--border2);}
+.trip-card.open{border-color:rgba(200,169,110,.4);}
+.trip-card.active-trip{border-color:var(--accent2);background:rgba(143,184,154,.05);}
+.tc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;cursor:pointer;}
+.tc-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.tc-budget{font-size:13px;font-weight:500;color:var(--accent);text-align:right;}
+.tc-bs{font-size:11px;color:var(--text3);}
+.chevron{font-size:11px;color:var(--text3);transition:transform .2s;margin-top:4px;}
+.trip-card.open .chevron{transform:rotate(180deg);}
+.tc-detail{overflow:hidden;max-height:0;transition:max-height .35s ease;}
+.trip-card.open .tc-detail{max-height:600px;}
+.tc-inner{padding-top:12px;border-top:1px solid var(--border);margin-top:12px;display:flex;flex-direction:column;gap:8px;}
+.drow{display:flex;gap:10px;font-size:12px;}
+.dlabel{color:var(--text3);min-width:80px;flex-shrink:0;}
+.dval{color:var(--text2);line-height:1.55;flex:1;}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+button{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:7px 14px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+button:hover{border-color:var(--accent);color:var(--accent);}
+button.primary{background:rgba(200,169,110,.15);border-color:rgba(200,169,110,.4);color:var(--accent);}
+button.primary:hover{background:rgba(200,169,110,.25);}
+button.success{background:rgba(143,184,154,.15);border-color:rgba(143,184,154,.4);color:var(--accent2);}
+button.success:hover{background:rgba(143,184,154,.25);}
+.month-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin-bottom:6px;}
+.month-cell{font-size:9px;text-align:center;color:var(--text3);}
+.wrow{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin-bottom:6px;}
+.wlabel{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wbar-container{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;}
+.wbar-seg{height:14px;border-radius:3px;background:var(--bg3);}
+.bl-progress{height:3px;background:var(--bg3);border-radius:99px;margin-bottom:18px;overflow:hidden;}
+.bl-fill{height:3px;background:var(--accent2);border-radius:99px;transition:width .5s ease;}
+.bl-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .15s;}
+.bl-item:last-child{border-bottom:none;}
+.bl-item:hover{opacity:.8;}
+.bl-num{font-size:10px;color:var(--text3);min-width:26px;}
+.bl-text{font-size:12px;color:var(--text);flex:1;line-height:1.4;}
+.bl-text.done{text-decoration:line-through;color:var(--text3);}
+.bl-check{width:17px;height:17px;border-radius:4px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bl-check.checked{background:var(--accent2);border-color:var(--accent2);}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.fbtn{font-size:11px;padding:4px 11px;border-radius:99px;cursor:pointer;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-family:'DM Sans',sans-serif;transition:all .15s;}
+.fbtn.active{background:rgba(200,169,110,.15);border-color:rgba(200,169,110,.4);color:var(--accent);}
+.fbtn:hover:not(.active){border-color:var(--border2);color:var(--text);}
+.adv-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;margin-bottom:8px;display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:start;}
+.adv-rank{font-size:20px;font-family:'DM Serif Display',serif;color:var(--text3);}
+.adv-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.adv-loc{font-size:11px;color:var(--text3);margin-bottom:4px;}
+.adv-why{font-size:11px;color:var(--text2);line-height:1.5;}
+.s-done{font-size:11px;padding:3px 8px;border-radius:99px;background:rgba(143,184,154,.12);color:#8fb89a;border:1px solid rgba(143,184,154,.3);white-space:nowrap;}
+.s-planned{font-size:11px;padding:3px 8px;border-radius:99px;background:rgba(200,169,110,.12);color:#c8a96e;border:1px solid rgba(200,169,110,.3);white-space:nowrap;}
+.s-dream{font-size:11px;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.05);color:var(--text3);border:1px solid var(--border);white-space:nowrap;}
+.leg-route{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start;}
+.leg-line{display:flex;flex-direction:column;align-items:center;min-width:14px;}
+.leg-dot-r{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.leg-connector{width:1px;background:var(--border2);flex:1;min-height:20px;}
+.leg-body{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:border-color .15s;}
+.leg-body:hover{border-color:var(--border2);}
+.leg-body.open2{border-color:rgba(200,169,110,.4);}
+.leg-hdr{display:flex;justify-content:space-between;align-items:center;}
+.leg-country{font-size:13px;font-weight:500;color:var(--text);}
+.leg-days-l{font-size:11px;color:var(--text3);}
+.leg-cities{font-size:11px;color:var(--text2);margin-top:3px;}
+.leg-photo{font-size:10px;color:var(--blue);margin-top:3px;}
+.leg-exp{overflow:hidden;max-height:0;transition:max-height .3s ease;}
+.leg-body.open2 .leg-exp{max-height:600px;}
+.leg-det{padding-top:10px;border-top:1px solid var(--border);margin-top:8px;}
+.day-row{display:flex;gap:8px;margin-bottom:5px;font-size:11px;}
+.day-lbl{color:var(--text3);min-width:40px;flex-shrink:0;}
+.day-cnt{color:var(--text2);line-height:1.5;}
+.shot-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:10px;display:grid;grid-template-columns:150px 1fr;}
+.shot-img{width:150px;height:125px;object-fit:cover;display:block;background:var(--bg3);}
+.shot-img-ph{width:150px;height:125px;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:22px;}
+.shot-body{padding:11px 13px;display:flex;flex-direction:column;gap:5px;}
+.shot-name{font-size:13px;font-weight:500;color:var(--text);}
+.shot-loc{font-size:10px;color:var(--text3);}
+.shot-desc{font-size:11px;color:var(--text2);line-height:1.55;}
+.swatch{width:13px;height:13px;border-radius:3px;border:1px solid rgba(255,255,255,.1);flex-shrink:0;}
+.timing-pill{font-size:10px;padding:2px 8px;border-radius:99px;background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
+.gen-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;margin-bottom:22px;}
+.gen-box h3{font-size:15px;color:var(--text);margin-bottom:4px;}
+.gen-box p{font-size:12px;color:var(--text2);margin-bottom:13px;line-height:1.6;}
+.irow{display:flex;gap:8px;margin-bottom:8px;}
+.irow input,.txt-inp{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:9px 13px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;}
+.irow input{flex:1;}.irow input:focus,.txt-inp:focus{border-color:rgba(200,169,110,.5);}
+.irow input::placeholder,.txt-inp::placeholder{color:var(--text3);}
+.dots{display:flex;gap:4px;align-items:center;padding:14px 0;}
+.dots span{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:blink 1.2s infinite;}
+.dots span:nth-child(2){animation-delay:.2s;}.dots span:nth-child(3){animation-delay:.4s;}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.chat-log{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;min-height:180px;}
+.cmsg{display:flex;gap:10px;}
+.cav{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;}
+.av-ai{background:rgba(200,169,110,.15);color:var(--accent);}
+.av-u{background:rgba(143,184,154,.15);color:var(--accent2);}
+.cbub{background:var(--bg2);border:1px solid var(--border);border-radius:12px;border-top-left-radius:3px;padding:9px 13px;font-size:12px;line-height:1.65;color:var(--text2);max-width:540px;}
+.cbub.user{background:var(--bg3);border-top-right-radius:3px;border-top-left-radius:12px;}
+.bk-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid;border-radius:0 var(--r2) var(--r2) 0;padding:12px 14px;margin-bottom:8px;}
+.bk-card.urgent{border-left-color:var(--red);}
+.bk-card.soon{border-left-color:#e0974e;}
+.bk-card.flexb{border-left-color:var(--accent2);}
+.cost-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:10px;}
+.cost-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+.cost-trip{font-size:15px;color:var(--text);font-family:'DM Serif Display',serif;}
+.cost-dates{font-size:11px;color:var(--text3);margin-top:3px;}
+.cost-net{font-size:20px;font-family:'DM Serif Display',serif;color:var(--accent);text-align:right;}
+.cost-net-lbl{font-size:10px;color:var(--text3);text-align:right;}
+.cost-bars{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.crow{display:grid;grid-template-columns:110px 1fr 60px;gap:8px;align-items:center;font-size:11px;}
+.clabel{color:var(--text2);}
+.cbar-bg{background:var(--bg3);border-radius:99px;height:5px;overflow:hidden;}
+.cbar-fill{height:5px;border-radius:99px;background:var(--accent);}
+.camount{color:var(--text2);text-align:right;}
+.cinsights{border-top:1px solid var(--border);padding-top:12px;}
+.cinsight{font-size:11px;color:var(--text2);margin-bottom:5px;line-height:1.55;padding-left:10px;border-left:2px solid var(--accent);}
+.add-cost-box{background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--r2);padding:16px;margin-bottom:10px;}
+.country-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-bottom:16px;}
+.cbtn{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:12px;color:var(--text2);cursor:pointer;text-align:left;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.cbtn:hover{border-color:var(--border2);color:var(--text);}
+.cbtn.visited{background:rgba(143,184,154,.1);border-color:rgba(143,184,154,.35);color:var(--accent2);}
+.cbtn.visited::after{content:' ✓';color:var(--accent2);}
+.builder-step{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;margin-bottom:12px;}
+.builder-step h3{font-size:14px;font-weight:500;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.stepnum{width:22px;height:22px;border-radius:50%;background:rgba(200,169,110,.15);color:var(--accent);font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rbtn{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.rbtn:hover{border-color:var(--border2);color:var(--text);}
+.rbtn.sel{background:rgba(200,169,110,.15);border-color:rgba(200,169,110,.4);color:var(--accent);}
+.csel{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:6px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.csel:hover{border-color:var(--border2);color:var(--text);}
+.csel.sel{background:rgba(143,184,154,.12);border-color:rgba(143,184,154,.4);color:var(--accent2);}
+.days-inp{width:72px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:7px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;text-align:center;}
+.days-inp:focus{border-color:rgba(200,169,110,.5);}
+.drow2{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px;color:var(--text2);}
+.dcountry{min-width:110px;font-weight:500;color:var(--text);}
+.upload-box{background:var(--bg3);border:2px dashed var(--border2);border-radius:var(--r2);padding:24px;text-align:center;cursor:pointer;transition:border-color .15s;}
+.upload-box:hover{border-color:rgba(200,169,110,.4);}
+textarea.txt-inp{width:100%;min-height:100px;resize:vertical;margin-bottom:8px;}
+@media(max-width:700px){.shell{grid-template-columns:1fr;}.sidebar{display:none;}.stats{grid-template-columns:repeat(2,1fr);}.shot-card{grid-template-columns:1fr;}.shot-img,.shot-img-ph{width:100%;height:160px;}}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="sidebar">
+  <div class="s-logo">
+    <h1>✦ Travel Intel</h1>
+    <p id="s-tagline">70 countries · Barbados · MTL</p>
+  </div>
+  <div class="nav-sec">Me</div>
+  <div class="nav-item active" onclick="SP('profile',this)"><i class="ti ti-user"></i>Profile</div>
+  <div class="nav-item" onclick="SP('countries',this)"><i class="ti ti-world"></i>My countries</div>
+  <div class="nav-sec">Planning</div>
+  <div class="nav-item" onclick="SP('pipeline',this)"><i class="ti ti-route"></i>Pipeline</div>
+  <div class="nav-item" onclick="SP('seasons',this)"><i class="ti ti-calendar"></i>Seasons</div>
+  <div class="nav-item" onclick="SP('booking',this)"><i class="ti ti-clock-exclamation"></i>Booking</div>
+  <div class="nav-sec">Lists</div>
+  <div class="nav-item" onclick="SP('bucketlist',this)"><i class="ti ti-list-check"></i>Bucket list</div>
+  <div class="nav-item" onclick="SP('adventures',this)"><i class="ti ti-trophy"></i>Adventures</div>
+  <div class="nav-sec">Next trip</div>
+  <div class="nav-item" onclick="SP('nexttrip',this)"><i class="ti ti-map-pin"></i>Trip planner</div>
+  <div class="nav-item" onclick="SP('shotguide',this)"><i class="ti ti-camera"></i>IG shots</div>
+  <div class="nav-item" onclick="SP('iggen',this)"><i class="ti ti-sparkles"></i>IG generator</div>
+  <div class="nav-item" onclick="SP('captions',this)"><i class="ti ti-writing"></i>Captions</div>
+  <div class="nav-sec">Money</div>
+  <div class="nav-item" onclick="SP('costs',this)"><i class="ti ti-receipt"></i>Trip costs</div>
+  <div class="nav-sec">AI</div>
+  <div class="nav-item" onclick="SP('chat',this)"><i class="ti ti-message-circle"></i>AI chat</div>
+</nav>
+<main class="main">
+<!-- PROFILE -->
+<div class="page active" id="page-profile">
+  <div class="topbar"><h2 class="page-title">My <span>profile</span></h2><span class="badge">Instagram confirmed</span></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-l">Countries</div><div class="stat-v" id="prof-count">70</div><div class="stat-s">Elite explorer</div></div>
+    <div class="stat"><div class="stat-l">Continents</div><div class="stat-v">5</div><div class="stat-s">Not Oceania yet</div></div>
+    <div class="stat"><div class="stat-l">Trips planned</div><div class="stat-v">11</div><div class="stat-s">~28 weeks</div></div>
+    <div class="stat"><div class="stat-l">Pipeline est.</div><div class="stat-v" style="font-size:17px;padding-top:4px">~$30K</div><div class="stat-s">CAD excl. flights</div></div>
+  </div>
+  <div class="sec">Travel style — photo confirmed</div>
+  <div class="pill-row" style="margin-bottom:20px">
+    <span class="pill p-gold">People-in-frame storyteller</span><span class="pill p-gold">Bold colour + street art</span><span class="pill p-blue">Iconic shots owned personally</span><span class="pill p-green">Dramatic atmosphere</span><span class="pill p-green">Goes beyond highlights</span><span class="pill p-blue">Aerial / drone</span><span class="pill p-gold">History + monuments</span><span class="pill p-green">Mountain landscapes</span><span class="pill p-gold">City energy + soul</span>
+  </div>
+  <div class="sec">Loved destinations</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+    <div class="card"><div class="card-title">Rio de Janeiro</div><div class="card-sub">Energy, favelas, street art, Selaron steps</div></div>
+    <div class="card"><div class="card-title">Japan</div><div class="card-sub">Aesthetic depth, culture, precision</div></div>
+    <div class="card"><div class="card-title">Greece + Italy</div><div class="card-sub">History, beaches, food layering</div></div>
+    <div class="card"><div class="card-title">Zimbabwe</div><div class="card-sub">Victoria Falls, wildlife, raw Africa</div></div>
+    <div class="card"><div class="card-title">Morocco</div><div class="card-sub">Colour, medinas, Sahara, Atlantic coast</div></div>
+    <div class="card"><div class="card-title">Jamaica</div><div class="card-sub">Waterfalls, culture, repeat visits (×4)</div></div>
+  </div>
+  <div class="sec">IG visual signature</div>
+  <div class="card"><div class="card-sub" style="line-height:1.8">Shoots places as <strong style="color:var(--text)">personal narrative</strong> — always the character in the story. Drawn to <strong style="color:var(--text)">bold colour and contrast</strong>. Goes deep into destinations. Comfortable with raw unfiltered experiences. <strong style="color:var(--text)">Atmospheric moments</strong> matter as much as landmarks. Drone is a consistent visual tool. Consistently ahead of the mainstream curve.</div></div>
+  <div class="sec" style="margin-top:16px">Not a priority</div>
+  <div class="pill-row"><span class="pill p-red">Beach (home baseline)</span><span class="pill p-red">Foodie trails</span><span class="pill p-red">Family logistics (solo)</span></div>
+</div>
+
+<!-- MY COUNTRIES -->
+<div class="page" id="page-countries">
+  <div class="topbar"><h2 class="page-title">My <span>countries</span></h2><span class="badge" id="cnt-badge">70 visited</span></div>
+  <div class="card" style="margin-bottom:16px;border-color:rgba(200,169,110,.3)">
+    <div class="card-sub">Click any country to mark as visited. Saves automatically and updates your count everywhere.</div>
+  </div>
+  <div class="filter-row" id="region-filters"></div>
+  <div style="margin-bottom:12px"><input type="text" class="txt-inp" style="width:100%" placeholder="Search country..." oninput="searchCountries(this.value)"/></div>
+  <div class="country-grid" id="country-grid"></div>
+</div>
+
+<!-- PIPELINE -->
+<div class="page" id="page-pipeline">
+  <div class="topbar"><h2 class="page-title">Trip <span>pipeline</span></h2><span class="badge">11 trips · ~$30K CAD</span></div>
+  <div class="card" style="margin-bottom:16px;border-color:rgba(143,184,154,.3)">
+    <div class="card-sub"><i class="ti ti-info-circle" style="vertical-align:-1px;margin-right:5px;color:var(--accent2)"></i>Click <strong style="color:var(--text)">Set as next trip</strong> on any card to activate it — IG shots, captions and AI chat all update to match.</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-l">Total trips</div><div class="stat-v">11</div></div>
+    <div class="stat"><div class="stat-l">New countries</div><div class="stat-v">~25</div></div>
+    <div class="stat"><div class="stat-l">Time-locked</div><div class="stat-v">5</div></div>
+    <div class="stat"><div class="stat-l">Flexible</div><div class="stat-v">6</div></div>
+  </div>
+  <div class="sec"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:5px"></span>Time-locked</div>
+  <div id="pl-locked"></div>
+  <div class="sec" style="margin-top:16px"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:5px"></span>Flexible</div>
+  <div id="pl-flex"></div>
+  <div style="display:flex;justify-content:space-between;padding:11px 14px;background:var(--bg2);border-radius:var(--r);border:1px solid var(--border);margin-top:10px">
+    <span style="font-size:12px;color:var(--text2)">Combined estimated budget (excl. international flights)</span>
+    <span style="font-size:13px;font-weight:500;color:var(--accent)">~$30,000 CAD</span>
+  </div>
+</div>
+
+<!-- SEASONS -->
+<div class="page" id="page-seasons">
+  <div class="topbar"><h2 class="page-title">Seasonal <span>windows</span></h2></div>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Green = ideal · Amber = acceptable · Dark = avoid</p>
+  <div class="month-grid"><div class="month-cell">Jan</div><div class="month-cell">Feb</div><div class="month-cell">Mar</div><div class="month-cell">Apr</div><div class="month-cell">May</div><div class="month-cell">Jun</div><div class="month-cell">Jul</div><div class="month-cell">Aug</div><div class="month-cell">Sep</div><div class="month-cell">Oct</div><div class="month-cell">Nov</div><div class="month-cell">Dec</div></div>
+  <div id="season-bars" style="margin-bottom:16px"></div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)"><div style="width:12px;height:12px;border-radius:2px;background:#8fb89a"></div>Ideal</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)"><div style="width:12px;height:12px;border-radius:2px;background:#c8a96e"></div>Acceptable</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)"><div style="width:12px;height:12px;border-radius:2px;background:var(--bg3)"></div>Avoid</div>
+  </div>
+</div>
+
+<!-- BOOKING -->
+<div class="page" id="page-booking">
+  <div class="topbar"><h2 class="page-title">Booking <span>guide</span></h2></div>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.7">Some trips require booking 6–18 months ahead — permits sell out, seasons are short.</p>
+  <div class="sec"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:5px"></span>Book 12–18 months ahead</div><div id="bk-urgent"></div>
+  <div class="sec" style="margin-top:16px"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#e0974e;margin-right:5px"></span>Book 6–12 months ahead</div><div id="bk-soon"></div>
+  <div class="sec" style="margin-top:16px"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent2);margin-right:5px"></span>Book 1–3 months ahead</div><div id="bk-flex"></div>
+</div>
+
+<!-- BUCKET LIST -->
+<div class="page" id="page-bucketlist">
+  <div class="topbar"><h2 class="page-title">Bucket <span>list</span></h2><span class="badge" id="bl-badge">0 / 150 done</span></div>
+  <div class="bl-progress"><div class="bl-fill" id="bl-bar" style="width:0%"></div></div>
+  <div class="filter-row">
+    <button class="fbtn active" onclick="filterBL('all',this)">All</button>
+    <button class="fbtn" onclick="filterBL('africa',this)">Africa</button>
+    <button class="fbtn" onclick="filterBL('asia',this)">Asia</button>
+    <button class="fbtn" onclick="filterBL('americas',this)">Americas</button>
+    <button class="fbtn" onclick="filterBL('europe',this)">Europe</button>
+    <button class="fbtn" onclick="filterBL('oceania',this)">Oceania</button>
+    <button class="fbtn" onclick="filterBL('done',this)">Completed</button>
+  </div>
+  <div id="bl-list"></div>
+</div>
+
+<!-- ADVENTURES -->
+<div class="page" id="page-adventures">
+  <div class="topbar"><h2 class="page-title">Ranked <span>adventures</span></h2></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-l">Total ranked</div><div class="stat-v">20</div></div>
+    <div class="stat"><div class="stat-l">Done</div><div class="stat-v" style="color:var(--accent2)">0</div></div>
+    <div class="stat"><div class="stat-l">In pipeline</div><div class="stat-v" style="color:var(--accent)">5</div></div>
+    <div class="stat"><div class="stat-l">Dream</div><div class="stat-v" style="color:var(--text3)">15</div></div>
+  </div>
+  <div id="adv-list"></div>
+</div>
+
+<!-- TRIP PLANNER -->
+<div class="page" id="page-nexttrip">
+  <div class="topbar"><h2 class="page-title">Trip <span>planner</span></h2><span class="badge" id="active-trip-badge">No active trip set</span></div>
+  <div class="builder-step">
+    <h3><span class="stepnum">1</span>Select a region <span style="font-size:11px;font-weight:400;color:var(--text3)">— or search any country below</span></h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="region-btns">
+      <button class="rbtn sel" onclick="selRegion('Central Asia',this)">Central Asia</button>
+      <button class="rbtn" onclick="selRegion('Caucasus',this)">Caucasus</button>
+      <button class="rbtn" onclick="selRegion('Africa',this)">Africa</button>
+      <button class="rbtn" onclick="selRegion('Southeast Asia',this)">Southeast Asia</button>
+      <button class="rbtn" onclick="selRegion('East Asia',this)">East Asia</button>
+      <button class="rbtn" onclick="selRegion('Caribbean',this)">Caribbean</button>
+      <button class="rbtn" onclick="selRegion('Europe',this)">Europe</button>
+      <button class="rbtn" onclick="selRegion('South America',this)">South America</button>
+      <button class="rbtn" onclick="selRegion('Oceania',this)">Oceania</button>
+      <button class="rbtn" onclick="selRegion('Middle East',this)">Middle East</button>
+    </div>
+  </div>
+  <div class="builder-step">
+    <h3><span class="stepnum">2</span>Choose countries</h3>
+    <div style="margin-bottom:10px"><input type="text" class="txt-inp" id="country-search-planner" style="width:100%" placeholder="Search any country in the world..." oninput="searchPlannerCountries(this.value)"/></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px" id="region-countries"></div>
+    <div id="search-results-planner" style="display:flex;gap:7px;flex-wrap:wrap"></div>
+    <div id="selected-countries-display" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:none">
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Selected</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap" id="selected-tags"></div>
+    </div>
+  </div>
+  <div class="builder-step">
+    <h3><span class="stepnum">3</span>Set days per country</h3>
+    <div id="days-inputs"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--text2)">Total: <strong style="color:var(--text)" id="total-days">0</strong> days</span>
+      <button class="primary" onclick="generateItinerary()"><i class="ti ti-wand"></i> Generate itinerary</button>
+      <span style="font-size:11px;color:var(--text3)">or</span>
+      <button onclick="document.getElementById('file-input').click()"><i class="ti ti-upload"></i> Upload itinerary</button>
+      <input type="file" id="file-input" accept=".txt,.pdf,.doc,.docx" style="display:none" onchange="handleUpload(this)"/>
+    </div>
+    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+      <p style="font-size:11px;color:var(--text3);margin-bottom:8px">Or paste your own itinerary text:</p>
+      <textarea class="txt-inp" id="paste-itin" placeholder="Paste itinerary here..." rows="4"></textarea>
+      <button onclick="parsePasted()"><i class="ti ti-file-text"></i> Format with AI</button>
+    </div>
+  </div>
+  <div id="itin-output" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="sec" style="margin:0;flex:1">Your itinerary</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="success" onclick="setAsActive()"><i class="ti ti-check"></i> Set as my next trip</button>
+        <button onclick="generateItinerary()"><i class="ti ti-refresh"></i> Regenerate</button>
+      </div>
+    </div>
+    <div id="itin-legs"></div>
+  </div>
+</div>
+
+<!-- IG SHOTS -->
+<div class="page" id="page-shotguide">
+  <div class="topbar"><h2 class="page-title">IG <span>shot guide</span></h2><span class="badge" id="shot-badge">Central Asia</span></div>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">Key locations matched to your visual style. Updates when you change your active trip in the Pipeline.</p>
+  <div class="filter-row">
+    <button class="fbtn active" onclick="filterShots('all',this)">All</button>
+    <button class="fbtn" onclick="filterShots('colour',this)">Bold colour</button>
+    <button class="fbtn" onclick="filterShots('architecture',this)">Architecture</button>
+    <button class="fbtn" onclick="filterShots('nature',this)">Nature</button>
+    <button class="fbtn" onclick="filterShots('atmospheric',this)">Atmospheric</button>
+    <button class="fbtn" onclick="filterShots('aerial',this)">Aerial/drone</button>
+  </div>
+  <div id="shot-list"></div>
+</div>
+
+<!-- IG GENERATOR -->
+<div class="page" id="page-iggen">
+  <div class="topbar"><h2 class="page-title">IG shot <span>generator</span></h2></div>
+  <div class="gen-box">
+    <h3>Generate shot guide for any location</h3>
+    <p>Enter one or multiple locations — get personalised shot suggestions, timing and outfit palettes matched to your style.</p>
+    <div class="irow">
+      <input type="text" id="gen-input" placeholder="e.g. Song-Kol Lake Kyrgyzstan, Charyn Canyon..." onkeydown="if(event.key==='Enter')genShots()"/>
+      <button class="primary" onclick="genShots()"><i class="ti ti-sparkles"></i> Generate</button>
+    </div>
+  </div>
+  <div id="gen-results"></div>
+</div>
+
+<!-- CAPTIONS -->
+<div class="page" id="page-captions">
+  <div class="topbar"><h2 class="page-title">Caption <span>generator</span></h2></div>
+  <div class="gen-box">
+    <h3>Generate an Instagram caption</h3>
+    <p>Enter any location — get a caption in your voice, 5 hashtags, historical context, and an unexpected fact.</p>
+    <div class="irow">
+      <input type="text" id="cap-input" placeholder="e.g. Registan Square Samarkand, Victoria Falls Zimbabwe..." onkeydown="if(event.key==='Enter')genCaption()"/>
+      <button class="primary" onclick="genCaption()"><i class="ti ti-writing"></i> Generate</button>
+    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;align-items:center">
+      <span style="font-size:11px;color:var(--text3)">Tone:</span>
+      <button class="fbtn active" onclick="setTone('reflective',this)">Reflective</button>
+      <button class="fbtn" onclick="setTone('bold',this)">Bold</button>
+      <button class="fbtn" onclick="setTone('minimal',this)">Minimal</button>
+      <button class="fbtn" onclick="setTone('storytelling',this)">Storytelling</button>
+    </div>
+  </div>
+  <div id="cap-results"></div>
+</div>
+
+<!-- TRIP COSTS -->
+<div class="page" id="page-costs">
+  <div class="topbar"><h2 class="page-title">Trip <span>costs</span></h2></div>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.7">Real spending data from your trips. Paste more dashboard links to add them.</p>
+  <div id="cost-cards"></div>
+  <div class="add-cost-box">
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Add another trip cost dashboard</p>
+    <input type="text" class="txt-inp" id="cost-url" style="width:100%;margin-bottom:8px" placeholder="https://your-trip-dashboard.netlify.app/"/>
+    <button class="primary" onclick="addCost()"><i class="ti ti-plus"></i> Load dashboard</button>
+    <div id="cost-status" style="font-size:11px;color:var(--text3);margin-top:8px;min-height:16px"></div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="page" id="page-chat">
+  <div class="topbar"><h2 class="page-title">AI <span>chat</span></h2></div>
+  <div class="chat-log" id="chat-log">
+    <div class="cmsg">
+      <div class="cav av-ai">AI</div>
+      <div class="cbub">Your Travel Intelligence Hub is loaded — countries, pipeline, bucket list, adventures, trip planner and costs. Everything updates as you change your active trip. Ask me anything.</div>
+    </div>
+  </div>
+  <div class="irow">
+    <input type="text" id="chat-input" placeholder="Ask anything about your trips, planning or destinations..." onkeydown="if(event.key==='Enter')doChat()"/>
+    <button class="primary" onclick="doChat()">Send ↗</button>
+  </div>
+</div>
+
+</main>
+</div>
+<script>
+// ═══ DATA ═══════════════════════════════════════════════════════
+const ALL_COUNTRIES={"Africa":["Algeria","Angola","Benin","Botswana","Burkina Faso","Burundi","Cameroon","Cape Verde","Chad","Comoros","Congo","DR Congo","Djibouti","Egypt","Equatorial Guinea","Eritrea","Eswatini","Ethiopia","Gabon","Gambia","Ghana","Guinea","Guinea-Bissau","Ivory Coast","Kenya","Lesotho","Liberia","Libya","Madagascar","Malawi","Mali","Mauritania","Mauritius","Morocco","Mozambique","Namibia","Niger","Nigeria","Rwanda","Senegal","Seychelles","Sierra Leone","Somalia","South Africa","South Sudan","Sudan","Tanzania","Togo","Tunisia","Uganda","Zambia","Zimbabwe"],"Asia":["Afghanistan","Armenia","Azerbaijan","Bahrain","Bangladesh","Bhutan","Brunei","Cambodia","China","Georgia","India","Indonesia","Iran","Iraq","Israel","Japan","Jordan","Kazakhstan","Kuwait","Kyrgyzstan","Laos","Lebanon","Malaysia","Maldives","Mongolia","Myanmar","Nepal","Oman","Pakistan","Philippines","Qatar","Saudi Arabia","Singapore","South Korea","Sri Lanka","Syria","Taiwan","Tajikistan","Thailand","Turkey","Turkmenistan","UAE","Uzbekistan","Vietnam","Yemen"],"Europe":["Albania","Andorra","Austria","Belarus","Belgium","Bosnia","Bulgaria","Croatia","Cyprus","Czech Republic","Denmark","Estonia","Finland","France","Germany","Greece","Hungary","Iceland","Ireland","Italy","Kosovo","Latvia","Lithuania","Luxembourg","Malta","Moldova","Monaco","Montenegro","Netherlands","North Macedonia","Norway","Poland","Portugal","Romania","Russia","San Marino","Serbia","Slovakia","Slovenia","Spain","Sweden","Switzerland","Ukraine","United Kingdom","Vatican"],"North America":["Antigua","Bahamas","Barbados","Belize","Canada","Costa Rica","Cuba","Dominica","Dominican Republic","El Salvador","Grenada","Guatemala","Haiti","Honduras","Jamaica","Mexico","Nicaragua","Panama","Saint Kitts","Saint Lucia","Saint Vincent","Trinidad","USA"],"South America":["Argentina","Bolivia","Brazil","Chile","Colombia","Ecuador","Guyana","Paraguay","Peru","Suriname","Uruguay","Venezuela"],"Oceania":["Australia","Fiji","Kiribati","Marshall Islands","Micronesia","Nauru","New Zealand","Palau","Papua New Guinea","Samoa","Solomon Islands","Tonga","Tuvalu","Vanuatu"]};
+
+const DEFAULT_VISITED=["Egypt","South Africa","Zimbabwe","Zambia","Botswana","Tanzania","Rwanda","Uganda","Morocco","China","Malaysia","Singapore","Thailand","Indonesia","Philippines","Japan","Turkey","Vietnam","Cambodia","India","UAE","Jordan","USA","Canada","Dominica","Trinidad","Belize","Guatemala","Jamaica","Ecuador","Peru","Argentina","Uruguay","Chile","Bolivia","Brazil","Colombia","United Kingdom","Germany","Netherlands","Spain","France","Italy","Switzerland","Ireland","Vatican","Austria","Croatia","Czech Republic","Slovakia","Monaco","Bosnia","Hungary","Montenegro","Poland","Albania","Belgium","Bulgaria","Kosovo","North Macedonia","Serbia","Greece","Romania","Malta","Cyprus","Barbados","Panama","Cuba","Saint Lucia","Grenada"];
+
+const REGION_MAP={"Central Asia":["Kazakhstan","Kyrgyzstan","Tajikistan","Turkmenistan","Uzbekistan"],"Caucasus":["Georgia","Armenia","Azerbaijan"],"Africa":["Kenya","Ethiopia","Tanzania","Mozambique","Namibia","South Africa","Morocco","Senegal","Gambia","Zimbabwe","Uganda","Rwanda","Botswana","Egypt","Ghana","Madagascar"],"Southeast Asia":["Vietnam","Philippines","Indonesia","Thailand","Cambodia","Laos","Malaysia","Myanmar","Singapore","Brunei"],"East Asia":["Japan","South Korea","Taiwan","China","Mongolia"],"Caribbean":["Barbados","Jamaica","Trinidad","Saint Lucia","Antigua","Saint Kitts","Saint Vincent","Dominica","Grenada","Bahamas","Cuba","Dominican Republic"],"Europe":["Portugal","Estonia","Latvia","Lithuania","Iceland","Norway","Sweden","Denmark","Finland","Ireland","Albania","Serbia","Kosovo","Montenegro"],"South America":["Colombia","Peru","Bolivia","Chile","Argentina","Brazil","Ecuador","Uruguay","Guyana","Venezuela"],"Oceania":["Australia","New Zealand","Fiji","Tonga","Samoa","Vanuatu","Papua New Guinea","Solomon Islands"],"Middle East":["Jordan","Oman","Saudi Arabia","Israel","Lebanon","UAE"]};
+
+const TRIPS=[
+  {id:"tonga",name:"Tonga + Fiji whale swimming",locked:true,dc:"#e05a4e",dur:"3 weeks",budget:"~$5,500",win:"Jul–Oct only",countries:"Tonga, Fiji, Australia",why:"Your #1 bucket list adventure — freediving with sperm whales. Strictly Jul–Oct. Sells out 12–18 months ahead.",bucket:["Freediving with Sperm Whales","Humpback Whale Swimming"],pills:[{t:"Jul–Oct only",c:"p-red"},{t:"Book 18 mo ahead",c:"p-red"}],bk:{u:"urgent",lead:"Book 18 months ahead",r:"Whale swim operators take only 4–8 swimmers. Best operators sell out the following season before the current one ends."}},
+  {id:"kenya",name:"Kenya + Ethiopia",locked:true,dc:"#e05a4e",dur:"3 weeks",budget:"~$5,500",win:"Jan–Feb or Jun–Sep",countries:"Kenya, Ethiopia",why:"Maasai Mara migration, hot air balloon safari, Lalibela rock churches. Ranked #2 in your own list.",bucket:["Maasai Mara migration","Lalibela churches"],pills:[{t:"Jan–Feb or Jun–Sep",c:"p-gold"}],bk:{u:"soon",lead:"Book 6–9 months ahead",r:"Hot air balloon safaris over the Mara book out fast. Lalibela during Ethiopian Christmas (Jan 7) gets extremely crowded."}},
+  {id:"tanzania",name:"Tanzania + Mozambique",locked:true,dc:"#e05a4e",dur:"2.5 weeks",budget:"~$4,000",win:"Jun–Oct",countries:"Tanzania, Mozambique",why:"Kilimanjaro (#4 on your adventures list), Zanzibar, whale shark diving.",bucket:["Mount Kilimanjaro","Zanzibar beaches"],pills:[{t:"Jun–Oct",c:"p-gold"}],bk:{u:"soon",lead:"Book 6 months ahead",r:"Kilimanjaro permits and good guides book up fast Jun–Sep. Kili camps are not last-minute."}},
+  {id:"centralasia",name:"Central Asia",locked:true,dc:"#e05a4e",dur:"3–4 weeks",budget:"~$5,000",win:"May–Jun or Sep–Oct",countries:"KG, TJ, KZ, UZ",why:"Most likely next trip. Silk Road history, Pamir Highway, alpine lakes, nomadic culture.",bucket:["Uzbekistan Silk Road","Kyrgyzstan alpine lakes","Tajikistan Pamir Highway"],pills:[{t:"Next trip",c:"p-gold"},{t:"Leaning this",c:"p-green"}],bk:{u:"flexb",lead:"Book 2–3 months ahead",r:"Guesthouses in remote Kyrgyzstan valleys and Khiva fill in peak season. Book those legs earlier."}},
+  {id:"namibia",name:"Overland Namibia",locked:true,dc:"#e05a4e",dur:"3 weeks",budget:"~$4,000",win:"May–Sep only",countries:"Namibia",why:"Sossusvlei dunes, Etosha safari, Skeleton Coast. Dry season essential.",bucket:["Namibia sand dunes","Etosha safari"],pills:[{t:"May–Sep only",c:"p-red"}],bk:{u:"soon",lead:"Book 6 months ahead",r:"Etosha lodge camps and Sossusvlei desert camps book out in dry season."}},
+  {id:"caribbean",name:"Caribbean cruise",locked:false,dc:"#c8a96e",dur:"2 weeks",budget:"~$2,000",win:"Dec–Apr",countries:"St. Vincent, St. Kitts, Antigua",why:"Closest to home, lowest cost, adds Caribbean countries. Smartest near-term move.",bucket:["Caribbean sailing","Antigua beaches"],pills:[{t:"Dec–Apr",c:"p-blue"},{t:"near-term",c:"p-blue"}],bk:{u:"flexb",lead:"Book 4–6 weeks ahead",r:"Caribbean cruise routes widely available. Sailing charter: book 2–3 months ahead."}},
+  {id:"baltics",name:"Baltics",locked:false,dc:"#c8a96e",dur:"2 weeks",budget:"~$3,000",win:"Jun–Aug ideal",countries:"Estonia, Latvia, Lithuania",why:"Tallinn medieval old city, Riga Art Nouveau, Vilnius street art republic. Completes Eastern Europe circuit.",bucket:["Baltics"],pills:[{t:"Jun–Aug ideal",c:"p-green"},{t:"flexible",c:"p-green"}],bk:{u:"flexb",lead:"Book 4–6 weeks ahead",r:"Easy last-minute outside summer. Tallinn old town fills July — book 6–8 weeks ahead for that window."}},
+  {id:"portugal",name:"Portugal + Senegal + Gambia",locked:false,dc:"#c8a96e",dur:"3 weeks",budget:"~$3,500",win:"Oct–Nov or Feb–Mar",countries:"Portugal, Senegal, Gambia",why:"Multi-continent combo. Fills Western Europe gap + opens West Africa.",bucket:["Senegal coast","Portugal"],pills:[{t:"Oct–Nov or Feb–Mar",c:"p-gold"},{t:"flexible",c:"p-green"}],bk:{u:"flexb",lead:"Book 4–8 weeks ahead",r:"Portugal easy. Good lodges in the Gambia book out Nov–Jan birdwatching season."}},
+  {id:"srilanka",name:"Sri Lanka + Maldives",locked:false,dc:"#c8a96e",dur:"2 weeks",budget:"~$3,500",win:"Jan–Mar",countries:"Sri Lanka, Maldives",why:"Sri Lanka temples, tea country, wildlife. Maldives overwater bungalow closes a major bucket list item.",bucket:["Maldives overwater bungalow","Swimming with Manta Rays"],pills:[{t:"Jan–Mar",c:"p-gold"},{t:"flexible",c:"p-green"}],bk:{u:"flexb",lead:"Book 3–4 months ahead",r:"Maldives overwater bungalows at good resorts book out Jan–Mar. Accommodation IS the experience."}},
+  {id:"philippines",name:"Philippines + Vietnam deep",locked:false,dc:"#c8a96e",dur:"3 weeks",budget:"~$3,500",win:"Nov–Apr",countries:"Philippines, Vietnam",why:"Ha Giang Loop, whale shark diving, Ha Long Bay. The deeper return trip.",bucket:["Ha Giang Loop Vietnam","Ha Long Bay"],pills:[{t:"Nov–Apr",c:"p-gold"},{t:"flexible",c:"p-green"}],bk:{u:"flexb",lead:"Book 2–3 months ahead",r:"Tubbataha Reef liveaboard (Philippines) only Mar–Jun, books out months ahead."}},
+  {id:"korea",name:"South Korea + Taiwan",locked:false,dc:"#c8a96e",dur:"2.5 weeks",budget:"~$3,500",win:"Mar–May or Oct–Nov",countries:"South Korea, Taiwan",why:"Cherry blossom season and Taiwan mountain hikes share the same Mar–May and Oct–Nov windows.",bucket:["Cherry blossoms Korea","Taiwan hikes"],pills:[{t:"Mar–May or Oct–Nov",c:"p-gold"},{t:"flexible",c:"p-green"}],bk:{u:"flexb",lead:"Book 6–8 weeks ahead",r:"Cherry blossom season causes accommodation to spike and sell out in Seoul."}}
+];
+
+const SEASONS=[
+  {name:"Tonga whale swimming",w:[0,0,0,0,0,0,1,1,1,2,0,0]},
+  {name:"Kenya + Ethiopia",w:[1,1,2,0,0,1,1,1,2,0,0,0]},
+  {name:"Tanzania + Mozambique",w:[0,0,0,0,0,1,1,1,1,2,0,0]},
+  {name:"Central Asia",w:[0,0,0,0,1,1,0,0,1,1,2,0]},
+  {name:"Overland Namibia",w:[0,0,0,0,1,1,1,1,1,0,0,0]},
+  {name:"Caribbean cruise",w:[1,1,1,2,0,0,0,0,0,0,0,1]},
+  {name:"Baltics",w:[0,0,0,2,2,1,1,1,2,0,0,0]},
+  {name:"Portugal + W.Africa",w:[0,0,2,0,0,0,0,0,0,1,1,2]},
+  {name:"Sri Lanka + Maldives",w:[1,1,1,0,0,0,0,0,0,0,0,2]},
+  {name:"Philippines + Vietnam",w:[2,1,1,1,0,0,0,0,0,0,1,1]},
+  {name:"Korea + Taiwan",w:[0,0,1,1,1,0,0,0,0,1,1,0]}
+];
+const SC=["var(--bg3)","#8fb89a","#c8a96e"];
+
+const BUCKET=[
+  {n:"Walk with lions Zimbabwe",r:1,cat:"africa",done:true},
+  {n:"Swim whale sharks Philippines",r:2,cat:"asia",done:false},
+  {n:"Gorilla trekking Uganda/Rwanda",r:3,cat:"africa",done:true},
+  {n:"Serengeti safari Tanzania",r:4,cat:"africa",done:true},
+  {n:"Kruger safari South Africa",r:5,cat:"africa",done:true},
+  {n:"Pyramids of Giza Egypt",r:6,cat:"africa",done:true},
+  {n:"Sahara Desert overnight Morocco",r:7,cat:"africa",done:false},
+  {n:"Petra at night Jordan",r:8,cat:"asia",done:true},
+  {n:"Machu Picchu Peru",r:9,cat:"americas",done:false},
+  {n:"Chichen Itza Mexico",r:10,cat:"americas",done:false},
+  {n:"Christ the Redeemer Brazil",r:11,cat:"americas",done:true},
+  {n:"Great Wall of China",r:12,cat:"asia",done:true},
+  {n:"Taj Mahal sunrise India",r:13,cat:"asia",done:true},
+  {n:"Great Barrier Reef Australia",r:14,cat:"oceania",done:false},
+  {n:"Cappadocia hot air balloon Turkey",r:15,cat:"asia",done:true},
+  {n:"Maldives overwater bungalow",r:16,cat:"asia",done:false},
+  {n:"Northern Lights Iceland",r:17,cat:"europe",done:false},
+  {n:"Angkor Wat Cambodia",r:18,cat:"asia",done:true},
+  {n:"Amazon rainforest Brazil",r:19,cat:"americas",done:false},
+  {n:"Cenotes diving Mexico",r:20,cat:"americas",done:false},
+  {n:"Grand Canyon helicopter USA",r:21,cat:"americas",done:false},
+  {n:"Maasai Mara migration Kenya",r:22,cat:"africa",done:false},
+  {n:"Kenya hot air balloon safari",r:23,cat:"africa",done:false},
+  {n:"Botswana safari — Okavango",r:24,cat:"africa",done:true},
+  {n:"Victoria Falls Zambia/Zimbabwe",r:25,cat:"africa",done:true},
+  {n:"Wadi Rum desert camp Jordan",r:26,cat:"asia",done:true},
+  {n:"Iceland ice caves",r:27,cat:"europe",done:false},
+  {n:"New Zealand road trip",r:28,cat:"oceania",done:false},
+  {n:"Bioluminescent waters Maldives",r:29,cat:"asia",done:false},
+  {n:"Mount Bromo Indonesia",r:30,cat:"asia",done:false},
+  {n:"Raja Ampat diving Indonesia",r:31,cat:"asia",done:false},
+  {n:"Komodo dragons Indonesia",r:32,cat:"asia",done:false},
+  {n:"Ha Long Bay Vietnam",r:33,cat:"asia",done:false},
+  {n:"Ha Giang Loop Vietnam",r:34,cat:"asia",done:false},
+  {n:"Chefchaouen blue city Morocco",r:35,cat:"africa",done:false},
+  {n:"Sahara camel trek Morocco",r:36,cat:"africa",done:false},
+  {n:"Amalfi Coast drive Italy",r:37,cat:"europe",done:false},
+  {n:"Greek islands hopping",r:38,cat:"europe",done:false},
+  {n:"Rio Carnival Brazil",r:39,cat:"americas",done:false},
+  {n:"Monaco F1 Grand Prix",r:40,cat:"europe",done:true},
+  {n:"Dublin pubs Ireland",r:41,cat:"europe",done:true},
+  {n:"Dracula Castle Romania",r:42,cat:"europe",done:true},
+  {n:"Havana Cuba old town",r:43,cat:"americas",done:true},
+  {n:"Jamaica waterfalls (Dunns River etc)",r:44,cat:"americas",done:true},
+  {n:"Trinidad Carnival",r:45,cat:"americas",done:true},
+  {n:"Barbados beaches (home)",r:46,cat:"americas",done:true},
+  {n:"Belize reef diving",r:47,cat:"americas",done:true},
+  {n:"Cartagena Colombia old city",r:48,cat:"americas",done:true},
+  {n:"St Lucia Pitons hike",r:49,cat:"americas",done:true},
+  {n:"Cape Town Table Mountain",r:50,cat:"africa",done:true},
+  {n:"Rwanda gorilla trekking",r:51,cat:"africa",done:true},
+  {n:"Uganda source of the Nile",r:52,cat:"africa",done:true},
+  {n:"Istanbul Bosphorus cruise",r:53,cat:"europe",done:true},
+  {n:"Burj Khalifa Dubai",r:54,cat:"asia",done:true},
+  {n:"Iguazu Falls Argentina/Brazil",r:55,cat:"americas",done:false},
+  {n:"Salar de Uyuni Bolivia",r:56,cat:"americas",done:false},
+  {n:"Patagonia trekking Chile/Argentina",r:57,cat:"americas",done:false},
+  {n:"Atacama Desert Chile",r:58,cat:"americas",done:false},
+  {n:"Galapagos Islands Ecuador",r:59,cat:"americas",done:false},
+  {n:"Easter Island Chile",r:60,cat:"americas",done:false},
+  {n:"Peru Sacred Valley + Machu Picchu",r:61,cat:"americas",done:false},
+  {n:"Colombia coffee region",r:62,cat:"americas",done:false},
+  {n:"Everest Base Camp Nepal",r:63,cat:"asia",done:false},
+  {n:"Mongolia steppes horseback",r:64,cat:"asia",done:false},
+  {n:"Kyrgyzstan alpine lakes",r:65,cat:"asia",done:false},
+  {n:"Uzbekistan Silk Road cities",r:66,cat:"asia",done:false},
+  {n:"Tajikistan Pamir Highway",r:67,cat:"asia",done:false},
+  {n:"Turkmenistan Door to Hell",r:68,cat:"asia",done:false},
+  {n:"Kazakhstan steppe + Charyn Canyon",r:69,cat:"asia",done:false},
+  {n:"Georgia wine country + Kazbegi",r:70,cat:"asia",done:false},
+  {n:"Armenia Noravank + Geghard",r:71,cat:"asia",done:false},
+  {n:"Azerbaijan Baku old city at night",r:72,cat:"asia",done:false},
+  {n:"Nile River cruise Egypt",r:73,cat:"africa",done:false},
+  {n:"Red Sea diving Egypt",r:74,cat:"africa",done:false},
+  {n:"Sahara Desert Merzouga Morocco",r:75,cat:"africa",done:false},
+  {n:"Lalibela rock churches Ethiopia",r:76,cat:"africa",done:false},
+  {n:"Ethiopian highlands trekking",r:77,cat:"africa",done:false},
+  {n:"Namibia Sossusvlei dunes",r:78,cat:"africa",done:false},
+  {n:"Etosha safari Namibia",r:79,cat:"africa",done:false},
+  {n:"Skeleton Coast Namibia",r:80,cat:"africa",done:false},
+  {n:"Senegal Dakar + coast",r:81,cat:"africa",done:false},
+  {n:"Zanzibar Stone Town + beaches",r:82,cat:"africa",done:false},
+  {n:"Mount Kilimanjaro Tanzania",r:83,cat:"africa",done:false},
+  {n:"Madagascar lemur trekking",r:84,cat:"africa",done:false},
+  {n:"Seychelles islands",r:85,cat:"africa",done:false},
+  {n:"Mauritius lagoons",r:86,cat:"africa",done:false},
+  {n:"Ghana castles + culture",r:87,cat:"africa",done:false},
+  {n:"Benin voodoo culture",r:88,cat:"africa",done:false},
+  {n:"Congo River expedition",r:89,cat:"africa",done:false},
+  {n:"Sri Lanka tea country + temples",r:90,cat:"asia",done:false},
+  {n:"South Korea cherry blossom season",r:91,cat:"asia",done:false},
+  {n:"Taiwan mountain hiking",r:92,cat:"asia",done:false},
+  {n:"Myanmar Bagan temples",r:93,cat:"asia",done:false},
+  {n:"Philippines whale shark diving",r:94,cat:"asia",done:false},
+  {n:"Tonga humpback whale swimming",r:95,cat:"oceania",done:false},
+  {n:"Fiji coral reefs diving",r:96,cat:"oceania",done:false},
+  {n:"Papua New Guinea village trek",r:97,cat:"oceania",done:false},
+  {n:"Vanuatu volcano islands",r:98,cat:"oceania",done:false},
+  {n:"Samoa waterfalls",r:99,cat:"oceania",done:false},
+  {n:"Tahiti overwater bungalow",r:100,cat:"oceania",done:false},
+  {n:"Antarctica expedition cruise",r:101,cat:"oceania",done:false},
+  {n:"Norway fjords cruise",r:102,cat:"europe",done:false},
+  {n:"Iceland glacier walk + Northern Lights",r:103,cat:"europe",done:false},
+  {n:"Baltics — Tallinn, Riga, Vilnius",r:104,cat:"europe",done:false},
+  {n:"Portugal Lisbon + Alentejo",r:105,cat:"europe",done:false},
+  {n:"Scotland castle highlands",r:106,cat:"europe",done:false},
+  {n:"Dubrovnik Croatia coast",r:107,cat:"europe",done:true},
+  {n:"Lake Bled Slovenia",r:108,cat:"europe",done:false},
+  {n:"Plitvice Lakes Croatia",r:109,cat:"europe",done:false},
+  {n:"Kotor Montenegro bay",r:110,cat:"europe",done:true},
+  {n:"Mostar Bosnia bridge",r:111,cat:"europe",done:true},
+  {n:"Colosseum + Rome Italy",r:112,cat:"europe",done:false},
+  {n:"Venice canals Italy",r:113,cat:"europe",done:false},
+  {n:"Tuscany wine country Italy",r:114,cat:"europe",done:false},
+  {n:"Santorini + Mykonos Greece",r:115,cat:"europe",done:false},
+  {n:"Meteora monasteries Greece",r:116,cat:"europe",done:false},
+  {n:"Oman desert + wadis",r:117,cat:"asia",done:false},
+  {n:"Saudi Arabia AlUla ancient city",r:118,cat:"asia",done:false},
+  {n:"Lake Baikal Russia",r:119,cat:"asia",done:false},
+  {n:"Trans-Siberian Railway Russia",r:120,cat:"asia",done:false},
+  {n:"Alaska glacier cruise",r:121,cat:"americas",done:false},
+  {n:"Canada whale watching",r:122,cat:"americas",done:false},
+  {n:"Bahamas swimming pigs Exuma",r:123,cat:"americas",done:false},
+  {n:"Antigua Sailing Week",r:124,cat:"americas",done:false},
+  {n:"Wild dolphin swimming",r:125,cat:"oceania",done:false}
+];
+
+const ADVENTURES=[
+  {rank:1,name:"Freediving with Sperm Whales",loc:"Dominica / Tonga",why:"Direct in-water apex marine mammal encounter — your #1 bucket experience",status:"dream"},
+  {rank:2,name:"Humpback Whale Swimming",loc:"Tonga / French Polynesia",why:"Close seasonal in-water interaction — linked to Tonga trip plan",status:"planned"},
+  {rank:3,name:"Son Doong Cave Exploration",loc:"Vietnam",why:"World's largest cave — rare permit, full underground ecosystem",status:"dream"},
+  {rank:4,name:"Mount Kilimanjaro Climb",loc:"Tanzania",why:"Iconic high-altitude summit — in the Tanzania + Mozambique pipeline trip",status:"planned"},
+  {rank:5,name:"Everest Base Camp Trek",loc:"Nepal",why:"Extended Himalayan cultural + environmental immersion",status:"dream"},
+  {rank:6,name:"Inca Trail to Machu Picchu",loc:"Peru",why:"Historic human-path + mountain ecosystem integration",status:"dream"},
+  {rank:7,name:"Grand Canyon White-Water Rafting",loc:"USA",why:"Continuous river-system immersion through geology",status:"dream"},
+  {rank:8,name:"Patagonia Multi-Day Trekking",loc:"Chile / Argentina",why:"Extreme landscape immersion — Torres del Paine",status:"dream"},
+  {rank:9,name:"Scuba Diving Raja Ampat",loc:"Indonesia",why:"Top coral biodiversity on Earth — already visited Indonesia, this is the deep return",status:"dream"},
+  {rank:10,name:"Great Barrier Reef Diving",loc:"Australia",why:"Iconic reef ecosystem before it deteriorates further",status:"planned"},
+  {rank:11,name:"Shark Diving (No Cage)",loc:"Bahamas / South Africa",why:"Controlled apex predator proximity in natural setting",status:"dream"},
+  {rank:12,name:"Swimming with Manta Rays",loc:"Maldives / Indonesia",why:"Slow close marine interaction in open water",status:"planned"},
+  {rank:13,name:"Galapagos Wildlife + Diving",loc:"Ecuador",why:"High-density unique wildlife interaction across land and sea",status:"dream"},
+  {rank:14,name:"Ha Giang Motorbike Loop",loc:"Vietnam",why:"Motion-based cultural + terrain immersion — northern highlands",status:"dream"},
+  {rank:15,name:"Swimming in Cenotes",loc:"Mexico",why:"Subterranean freshwater ecosystem — Yucatan Peninsula",status:"dream"},
+  {rank:16,name:"Paragliding over Dramatic Landscapes",loc:"Turkey / Switzerland / Nepal",why:"Sustained aerial exposure over extreme landscapes",status:"dream"},
+  {rank:17,name:"Antarctic Expedition Cruise",loc:"Antarctica",why:"Extreme environment, extreme photography — last frontier",status:"dream"},
+  {rank:18,name:"Aurora Borealis Wilderness",loc:"Norway / Iceland / Canada",why:"Natural light phenomenon in full environmental isolation",status:"dream"},
+  {rank:19,name:"Jungle River Expedition",loc:"Peru / Borneo / Costa Rica",why:"River-based immersion in dense tropical ecosystems",status:"dream"},
+  {rank:20,name:"Pamir Highway Road Trip",loc:"Tajikistan",why:"One of the world's highest and most remote roads — in Central Asia pipeline",status:"planned"}
+];
+
+const SHOTS_DB={
+  centralasia:[
+    {name:"Song-Kol Lake yurt camp",country:"Kyrgyzstan",city:"Song-Kol",type:"aerial",badge:"Aerial/drone",bc:"rgba(143,184,154,.15)",bt:"#8fb89a",img:"",desc:"Alpine lake at 3016m with yurt camps on the shore. Drone view at sunrise — you tiny against the vast steppe and water. Walk to the water's edge for the ground-level frame.",timing:"Sunrise — golden light on the water",sw:["#8fb89a","#FFFFFF","#1a1a2e"],outfit:"Bright white or mint — visible from drone height against the green steppe."},
+    {name:"Pamir Highway M41",country:"Tajikistan",city:"Pamir",type:"nature",badge:"Nature",bc:"rgba(91,143,212,.15)",bt:"#5b8fd4",img:"",desc:"One of the highest roads on Earth — 4000m+ passes with snow-capped peaks stretching to Afghanistan. Stand in the middle of the empty road, mountains framing both sides.",timing:"Midday — clear light on high altitude peaks",sw:["#5b8fd4","#FFFFFF","#2C2C2A"],outfit:"Dark navy or black. The pale sky and white peaks do the colour work."},
+    {name:"Charyn Canyon",country:"Kazakhstan",city:"Charyn",type:"nature",badge:"Nature",bc:"rgba(143,184,154,.15)",bt:"#8fb89a",img:"",desc:"Kazakhstan's grand canyon — 80km of red and orange rock formations. Stand at the rim or canyon floor looking up at the vertical walls.",timing:"Late afternoon — walls turn amber and red",sw:["#D85A30","#EF9F27","#FFFFFF"],outfit:"White or cream. The red canyon walls are the colour story."},
+    {name:"Registan Square",country:"Uzbekistan",city:"Samarkand",type:"architecture",badge:"Architecture",bc:"rgba(91,143,212,.15)",bt:"#5b8fd4",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Samarkand_Registan_Panorama.jpg/1200px-Samarkand_Registan_Panorama.jpg",desc:"Three massive madrassas surrounding a central square — the most photogenic architectural ensemble you will ever stand in. Stand centred at the far end, deep blue tilework behind you.",timing:"Golden hour or blue hour — avoid midday",sw:["#185FA5","#FFFFFF","#EF9F27"],outfit:"Bright white or electric blue. The deep blue tilework demands high contrast."},
+    {name:"Shah-i-Zinda necropolis",country:"Uzbekistan",city:"Samarkand",type:"colour",badge:"Bold colour",bc:"rgba(200,169,110,.15)",bt:"#c8a96e",img:"",desc:"A long alley of mausoleums covered in deep cobalt, turquoise and indigo mosaic tilework. The boldest colour on this trip. Sit in an arched doorway.",timing:"Morning — light straight down the alley",sw:["#185FA5","#5DCAA5","#FFFFFF"],outfit:"Bright white shirt. Pure contrast with the deep blue tiles — most striking shot of the trip."},
+    {name:"Khiva walled city at dusk",country:"Uzbekistan",city:"Khiva",type:"atmospheric",badge:"Atmospheric",bc:"rgba(200,169,110,.12)",bt:"#c8a96e",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Khiva_at_Night.jpg/1200px-Khiva_at_Night.jpg",desc:"Walk the top of the walls as the mud-brick city glows golden below. The single most atmospheric moment of the entire trip.",timing:"45 mins after sunset — golden into deep blue",sw:["#FAC775","#854F0B","#1a1a2e"],outfit:"Deep navy or charcoal. You silhouette against the glowing city."},
+    {name:"Big Almaty Lake",country:"Kazakhstan",city:"Almaty",type:"nature",badge:"Nature",bc:"rgba(143,184,154,.15)",bt:"#8fb89a",img:"",desc:"Impossibly blue-green glacial lake at 2500m, ringed by snow-capped peaks. Hike the rim for the overhead perspective.",timing:"Midday — peak colour saturation",sw:["#1D9E75","#FFFFFF","#2C2C2A"],outfit:"White or bright orange — maximum contrast against the deep teal water."},
+    {name:"Osh Bazaar Bishkek",country:"Kyrgyzstan",city:"Bishkek",type:"colour",badge:"Bold colour",bc:"rgba(200,169,110,.15)",bt:"#c8a96e",img:"",desc:"One of Central Asia's most vibrant markets — spices, textiles, dried fruits in bold pyramids of colour.",timing:"Weekday morning — vendors set up, best light",sw:["#EF9F27","#D85A30","#8fb89a"],outfit:"Bold coloured shirt — cobalt, emerald or orange."}
+  ],
+  caucasus:[
+    {name:"Fabrika murals",country:"Georgia",city:"Tbilisi",type:"colour",badge:"Bold colour",bc:"rgba(200,169,110,.15)",bt:"#c8a96e",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Fabrika_Tbilisi.jpg/1200px-Fabrika_Tbilisi.jpg",desc:"Repurposed Soviet factory covered in huge bold murals. Frame yourself against the most saturated wall you find.",timing:"Morning or overcast for even light",sw:["#E8B84B","#FFFFFF","#2C2C2A"],outfit:"White or cream top, dark trousers."},
+    {name:"Gergeti Trinity Church",country:"Georgia",city:"Kazbegi",type:"aerial",badge:"Aerial/drone",bc:"rgba(143,184,154,.15)",bt:"#8fb89a",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Gergeti_Trinity_Church%2C_Kazbegi%2C_Georgia.jpg/1200px-Gergeti_Trinity_Church%2C_Kazbegi%2C_Georgia.jpg",desc:"14th-century church on a cliff at 2170m with snow-capped Kazbek behind. One of the best aerial frames in the world.",timing:"Early morning before clouds roll in",sw:["#185FA5","#FFFFFF","#3B6D11"],outfit:"Bright white or cobalt blue — visible from drone height."},
+    {name:"Noravank red canyon",country:"Armenia",city:"Noravank",type:"nature",badge:"Nature",bc:"rgba(143,184,154,.15)",bt:"#8fb89a",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Noravank_Monastery%2C_Armenia.jpg/1200px-Noravank_Monastery%2C_Armenia.jpg",desc:"Deep red and orange canyon walls with a medieval monastery carved into the face. Best single landscape frame of the Armenia leg.",timing:"Late afternoon — canyon walls glow red-orange",sw:["#993C1D","#EF9F27","#FFFFFF"],outfit:"White or light grey — you become the contrast element in the red canyon."},
+    {name:"Heydar Aliyev Centre",country:"Azerbaijan",city:"Baku",type:"architecture",badge:"Architecture",bc:"rgba(91,143,212,.15)",bt:"#5b8fd4",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Heydar_Aliyev_Center.jpg/1200px-Heydar_Aliyev_Center.jpg",desc:"Zaha Hadid's undulating pure white building — no straight lines. One of the most photogenic buildings on Earth.",timing:"Overcast day — diffused light on white",sw:["#FFFFFF","#E8B84B","#2C2C2A"],outfit:"All black. Absolute contrast against the white architecture."},
+    {name:"Icherisheher old city at night",country:"Azerbaijan",city:"Baku",type:"atmospheric",badge:"Atmospheric",bc:"rgba(150,120,220,.15)",bt:"#9b8fd4",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Baku_Old_City.jpg/1200px-Baku_Old_City.jpg",desc:"UNESCO walled city glowing amber at night — narrow stone lanes, carved archways. Your Petra-by-night equivalent.",timing:"After 9pm when crowds thin",sw:["#1a1a2e","#FAC775","#C67C4E"],outfit:"All black or deep navy. The warm stone light does everything."}
+  ]
+};
+
+const COST_BASE=[{
+  trip:"Morocco · Jordan · Mediterranean",dates:"Apr 6 – May 8, 2025",days:32,countries:6,gross:4985,net:3025,url:"https://thunderous-medovik-a7baa0.netlify.app/",
+  cats:[{name:"Transport",amt:1954,pct:39.2},{name:"Accommodation",amt:1289,pct:25.9},{name:"Activities",amt:849,pct:17.0},{name:"Food",amt:722,pct:14.5},{name:"Misc",amt:171,pct:3.4}],
+  insights:["Net cost <b>$3,025 CAD</b> after $2,014 in airline refunds. Exceptional value for 6 countries.","Egypt was the standout value — roughly <b>$166 total</b> for Cairo including pyramids, food and taxis.","Morocco over 15 days averaged <b>$94/day gross</b> including a 3-night Sahara tour.","Jordan Pass at <b>$153</b> covered Petra entry + visa, saving ~$80+ vs buying separately.","Greece was the priciest at <b>~$252/day gross</b> — Mykonos flight ($321) and ferries added up."]
+}];
+// ═══ STATE ═══════════════════════════════════════════════════════
+const STATE={visited:[],blState:[],activeTrip:'centralasia',savedItin:null,extraCosts:[]};
+function loadState(){
+  try{
+    const v=localStorage.getItem('tih_visited');
+    const b=localStorage.getItem('tih_bl');
+    const t=localStorage.getItem('tih_trip');
+    const it=localStorage.getItem('tih_itin');
+    const ec=localStorage.getItem('tih_costs');
+    STATE.visited=v?JSON.parse(v):[...DEFAULT_VISITED];
+    STATE.blState=b?JSON.parse(b):BUCKET.map(x=>x.done);
+    STATE.activeTrip=t||'centralasia';
+    STATE.savedItin=it?JSON.parse(it):null;
+    STATE.extraCosts=ec?JSON.parse(ec):[];
+  }catch(e){STATE.visited=[...DEFAULT_VISITED];STATE.blState=BUCKET.map(x=>x.done);}
+}
+function sv(){localStorage.setItem('tih_visited',JSON.stringify(STATE.visited));}
+function sb(){localStorage.setItem('tih_bl',JSON.stringify(STATE.blState));}
+function st(){localStorage.setItem('tih_trip',STATE.activeTrip);}
+function si(){localStorage.setItem('tih_itin',JSON.stringify(STATE.savedItin));}
+function sec(){localStorage.setItem('tih_costs',JSON.stringify(STATE.extraCosts));}
+loadState();
+
+// ═══ NAV ════════════════════════════════════════════════════════
+const INITS={countries:initCountries,pipeline:initPipeline,seasons:initSeasons,booking:initBooking,bucketlist:()=>renderBL(),adventures:initAdv,nexttrip:initPlanner,shotguide:()=>renderShots(),costs:initCosts};
+function SP(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+  if(INITS[name]) INITS[name]();
+  updateUI();
+}
+function updateUI(){
+  const cnt=STATE.visited.length;
+  document.getElementById('prof-count').textContent=cnt;
+  document.getElementById('cnt-badge').textContent=cnt+' visited';
+  document.getElementById('s-tagline').textContent=cnt+' countries · Barbados · MTL';
+  const at=TRIPS.find(t=>t.id===STATE.activeTrip);
+  const atName=at?at.name:'Custom trip';
+  document.getElementById('active-trip-badge').textContent=atName;
+  const sb2=document.getElementById('shot-badge');
+  if(sb2) sb2.textContent=atName;
+}
+
+// ═══ COUNTRIES ══════════════════════════════════════════════════
+let cntRegFilter='All';
+function initCountries(){
+  const rf=document.getElementById('region-filters');
+  if(!rf.children.length){
+    ['All','Africa','Asia','Europe','North America','South America','Oceania'].forEach(r=>{
+      const b=document.createElement('button');
+      b.className='fbtn'+(r==='All'?' active':'');
+      b.textContent=r;
+      b.onclick=()=>{document.querySelectorAll('#region-filters .fbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');cntRegFilter=r;renderCntGrid('');};
+      rf.appendChild(b);
+    });
+  }
+  renderCntGrid('');
+}
+function searchCountries(q){renderCntGrid(q);}
+function renderCntGrid(q){
+  let countries=[];
+  if(cntRegFilter==='All') Object.values(ALL_COUNTRIES).forEach(a=>countries.push(...a));
+  else{const k=Object.keys(ALL_COUNTRIES).find(k=>k===cntRegFilter)||cntRegFilter;countries=ALL_COUNTRIES[k]||[];}
+  if(q) countries=countries.filter(c=>c.toLowerCase().includes(q.toLowerCase()));
+  countries.sort();
+  document.getElementById('country-grid').innerHTML=countries.map(c=>`<button class="cbtn${STATE.visited.includes(c)?' visited':''}" onclick="toggleCnt('${c}',this)">${c}</button>`).join('');
+}
+function toggleCnt(c,btn){
+  const i=STATE.visited.indexOf(c);
+  if(i>-1){STATE.visited.splice(i,1);btn.classList.remove('visited');}
+  else{STATE.visited.push(c);btn.classList.add('visited');}
+  sv();updateUI();
+}
+
+// ═══ PIPELINE ═══════════════════════════════════════════════════
+function initPipeline(){
+  if(document.getElementById('pl-locked').children.length) return;
+  renderPipeline();
+}
+function renderPipeline(){
+  function card(t){
+    const ps=t.pills.map(p=>`<span class="pill ${p.c}">${p.t}</span>`).join('');
+    const bk=t.bucket.map(b=>`<span class="pill p-gray" style="font-size:10px">${b}</span>`).join('');
+    const isA=STATE.activeTrip===t.id;
+    return `<div class="trip-card${isA?' active-trip':''}" id="tc-${t.id}">
+      <div class="tc-top" onclick="document.getElementById('tc-${t.id}').classList.toggle('open')">
+        <div style="flex:1;min-width:0"><div style="display:flex;align-items:flex-start;gap:8px">
+          <div class="dot" style="background:${t.dc};margin-top:4px"></div>
+          <div><div class="tc-name">${t.name}${isA?'<span class="pill p-green" style="margin-left:8px;font-size:10px">active</span>':''}</div><div class="pill-row">${ps}</div></div>
+        </div></div>
+        <div style="text-align:right;flex-shrink:0"><div class="tc-budget">${t.budget}</div><div class="tc-bs">CAD excl. flights</div><i class="ti ti-chevron-down chevron" style="display:block;margin-top:4px"></i></div>
+      </div>
+      <div class="tc-detail"><div class="tc-inner">
+        <div class="drow"><span class="dlabel">Countries</span><span class="dval">${t.countries}</span></div>
+        <div class="drow"><span class="dlabel">Window</span><span class="dval">${t.win}</span></div>
+        <div class="drow"><span class="dlabel">Why it fits</span><span class="dval">${t.why}</span></div>
+        <div class="drow"><span class="dlabel">Bucket hits</span><span class="dval" style="display:flex;flex-wrap:wrap;gap:4px">${bk}</span></div>
+        <div style="margin-top:8px"><button class="success" onclick="event.stopPropagation();setTripActive('${t.id}')"><i class="ti ti-check"></i> Set as next trip</button></div>
+      </div></div>
+    </div>`;
+  }
+  document.getElementById('pl-locked').innerHTML=TRIPS.filter(t=>t.locked).map(card).join('');
+  document.getElementById('pl-flex').innerHTML=TRIPS.filter(t=>!t.locked).map(card).join('');
+}
+function setTripActive(id){
+  STATE.activeTrip=id;st();
+  document.getElementById('pl-locked').innerHTML='';
+  document.getElementById('pl-flex').innerHTML='';
+  renderPipeline();renderShots();updateUI();
+  alert('Active trip updated. IG shots, captions and AI chat now reflect: '+TRIPS.find(t=>t.id===id).name);
+}
+
+// ═══ SEASONS ════════════════════════════════════════════════════
+function initSeasons(){
+  const c=document.getElementById('season-bars');
+  if(c.children.length) return;
+  SEASONS.forEach(s=>{
+    const segs=s.w.map(w=>`<div class="wbar-seg" style="background:${SC[w]}"></div>`).join('');
+    c.insertAdjacentHTML('beforeend',`<div class="wrow"><div class="wlabel">${s.name}</div><div class="wbar-container">${segs}</div></div>`);
+  });
+}
+
+// ═══ BOOKING ════════════════════════════════════════════════════
+function initBooking(){
+  if(document.getElementById('bk-urgent').children.length) return;
+  const u=[],s=[],f=[];
+  TRIPS.forEach(t=>{
+    const b=t.bk;
+    const ps=t.pills.map(p=>`<span class="pill ${p.c}">${p.t}</span>`).join('');
+    const cls=b.u==='urgent'?'urgent':b.u==='soon'?'soon':'flexb';
+    const lc=b.u==='urgent'?'color:var(--red)':b.u==='soon'?'color:#e0974e':'color:var(--accent2)';
+    const html=`<div class="bk-card ${cls}"><div class="bk-name">${t.name}</div><div style="font-size:11px;color:var(--text2);line-height:1.55;margin-bottom:6px">${b.r}</div><div class="pill-row" style="margin-top:5px">${ps}</div><div style="font-size:11px;font-weight:500;margin-top:6px;${lc}">${b.lead}</div></div>`;
+    if(b.u==='urgent')u.push(html); else if(b.u==='soon')s.push(html); else f.push(html);
+  });
+  document.getElementById('bk-urgent').innerHTML=u.join('');
+  document.getElementById('bk-soon').innerHTML=s.join('');
+  document.getElementById('bk-flex').innerHTML=f.join('');
+}
+
+// ═══ BUCKET LIST ════════════════════════════════════════════════
+let blF='all';
+function renderBL(){
+  const fl=BUCKET.filter(b=>blF==='all'?true:blF==='done'?STATE.blState[b.r-1]:b.cat===blF);
+  document.getElementById('bl-list').innerHTML=fl.map(b=>`
+    <div class="bl-item" onclick="toggleBL(${b.r-1})">
+      <span class="bl-num">${b.r}</span>
+      <span class="bl-text ${STATE.blState[b.r-1]?'done':''}">${b.n}</span>
+      <div class="bl-check ${STATE.blState[b.r-1]?'checked':''}">${STATE.blState[b.r-1]?'<i class="ti ti-check" style="font-size:10px;color:#0e0e0f"></i>':''}</div>
+    </div>`).join('');
+  const done=STATE.blState.filter(Boolean).length;
+  document.getElementById('bl-badge').textContent=`${done} / 150 done`;
+  document.getElementById('bl-bar').style.width=Math.round(done/150*100)+'%';
+}
+function toggleBL(i){STATE.blState[i]=!STATE.blState[i];sb();renderBL();}
+function filterBL(cat,btn){document.querySelectorAll('#page-bucketlist .fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');blF=cat;renderBL();}
+
+// ═══ ADVENTURES ═════════════════════════════════════════════════
+function initAdv(){
+  if(document.getElementById('adv-list').children.length) return;
+  const sm={done:'s-done',planned:'s-planned',dream:'s-dream'};
+  const sl={done:'done',planned:'in pipeline',dream:'dream'};
+  document.getElementById('adv-list').innerHTML=ADVENTURES.map(a=>`
+    <div class="adv-card">
+      <div class="adv-rank">${a.rank}</div>
+      <div><div class="adv-name">${a.name}</div><div class="adv-loc">${a.loc}</div><div class="adv-why">${a.why}</div></div>
+      <span class="${sm[a.status]}">${sl[a.status]}</span>
+    </div>`).join('');
+}
+
+// ═══ TRIP PLANNER ════════════════════════════════════════════════
+let activeRegion='Central Asia',selCountries=['Kyrgyzstan','Tajikistan','Kazakhstan','Uzbekistan'],cDays={Kyrgyzstan:7,Tajikistan:6,Kazakhstan:4,Uzbekistan:9};
+function initPlanner(){renderRCountries();renderDays();renderSelectedTags();}
+function selRegion(r,btn){document.querySelectorAll('#region-btns .rbtn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');activeRegion=r;selCountries=[];cDays={};renderRCountries();renderDays();document.getElementById('itin-output').style.display='none';document.getElementById('country-search-planner').value='';document.getElementById('search-results-planner').innerHTML='';}
+function searchPlannerCountries(q){
+  const sr=document.getElementById('search-results-planner');
+  if(!q.trim()){sr.innerHTML='';return;}
+  const all=Object.values(ALL_COUNTRIES).flat();
+  const matches=all.filter(c=>c.toLowerCase().includes(q.toLowerCase())).slice(0,20);
+  sr.innerHTML=matches.map(c=>`<button class="csel${selCountries.includes(c)?' sel':''}" onclick="toggleCSel('${c}',this);document.getElementById('country-search-planner').value='';document.getElementById('search-results-planner').innerHTML=''">${c}</button>`).join('');
+}
+function renderRCountries(){
+  const cs=REGION_MAP[activeRegion]||[];
+  document.getElementById('region-countries').innerHTML=cs.map(c=>`<button class="csel${selCountries.includes(c)?' sel':''}" onclick="toggleCSel('${c}',this)">${c}</button>`).join('');
+}
+function toggleCSel(c,btn){
+  const i=selCountries.indexOf(c);
+  if(i>-1){selCountries.splice(i,1);delete cDays[c];btn.classList.remove('sel');}
+  else{selCountries.push(c);cDays[c]=7;btn.classList.add('sel');}
+  renderDays();renderSelectedTags();
+  // also refresh region country buttons state
+  document.querySelectorAll('#region-countries .csel').forEach(b=>{b.classList.toggle('sel',selCountries.includes(b.textContent));});
+}
+function renderSelectedTags(){
+  const wrap=document.getElementById('selected-countries-display');
+  const tags=document.getElementById('selected-tags');
+  if(!selCountries.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  tags.innerHTML=selCountries.map(c=>`<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(143,184,154,.12);border:1px solid rgba(143,184,154,.3);color:#8fb89a;border-radius:99px;padding:3px 10px;font-size:12px">${c}<button onclick="toggleCSel('${c}',{classList:{remove:()=>{},add:()=>{}},textContent:'${c}'})" style="background:none;border:none;color:#8fb89a;padding:0;margin:0;cursor:pointer;font-size:12px;line-height:1">✕</button></span>`).join('');
+}
+function renderDays(){
+  const c=document.getElementById('days-inputs');
+  if(!selCountries.length){c.innerHTML='<p style="font-size:12px;color:var(--text3)">Select countries above.</p>';updTotal();return;}
+  c.innerHTML=selCountries.map(c=>`<div class="drow2"><span class="dcountry">${c}</span><input type="number" class="days-inp" value="${cDays[c]||7}" min="1" max="60" onchange="cDays['${c}']=parseInt(this.value)||1;updTotal()" oninput="cDays['${c}']=parseInt(this.value)||1;updTotal()"/><span style="font-size:12px;color:var(--text3)">days</span></div>`).join('');
+  updTotal();
+}
+function updTotal(){document.getElementById('total-days').textContent=Object.values(cDays).reduce((a,b)=>a+b,0);}
+
+async function generateItinerary(){
+  if(!selCountries.length){alert('Select at least one country.');return;}
+  const out=document.getElementById('itin-output');
+  const legs=document.getElementById('itin-legs');
+  out.style.display='block';
+  legs.innerHTML=`<div style="padding:14px 0"><div class="dots"><span></span><span></span><span></span></div><p style="font-size:12px;color:var(--text2);margin-top:8px">Building itinerary for ${selCountries.join(', ')}...</p></div>`;
+  const cl=selCountries.map(c=>`${c}: ${cDays[c]} days`).join(', ');
+  const prompt=`Build a day-by-day travel itinerary. Traveler profile: 70+ countries, from Barbados, solo, not a foodie, loves city energy and dramatic nature, shoots bold colour street art and atmospheric night shots, drone photographer, goes beyond tourist highlights. Countries and days: ${cl}. Total days: ${Object.values(cDays).reduce((a,b)=>a+b,0)}. Return ONLY valid JSON array (no markdown): [{"country":"Name","flag":"🇺🇿","days":"Days X–Y","duration":N,"cities":"City1 · City2","color":"#hex","photoTip":"3 key IG shot opportunities","schedule":[{"day":"1–2","content":"specific activities tailored to this traveler"}]}] Include local hidden gems, mention photo/drone opportunities.`;
+  try{
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    const clean=(data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
+    const itin=JSON.parse(clean);
+    STATE.savedItin={type:'gen',data:itin,countries:selCountries,days:{...cDays}};si();
+    renderLegs(itin,legs);
+  }catch(e){legs.innerHTML=`<p style="font-size:12px;color:var(--text3);padding:12px 0">Error generating itinerary. Please try again.</p>`;}
+}
+
+function renderLegs(itin,container){
+  container=container||document.getElementById('itin-legs');
+  container.innerHTML='';
+  itin.forEach((leg,i)=>{
+    const isLast=i===itin.length-1;
+    const days=(leg.schedule||[]).map(s=>`<div class="day-row"><span class="day-lbl">Day ${s.day}</span><span class="day-cnt">${s.content}</span></div>`).join('');
+    container.insertAdjacentHTML('beforeend',`<div class="leg-route">
+      <div class="leg-line">
+        <div class="leg-dot-r" style="background:${leg.color||'#c8a96e'};outline:2px solid ${leg.color||'#c8a96e'};outline-offset:2px"></div>
+        ${!isLast?'<div class="leg-connector"></div>':''}
+      </div>
+      <div class="leg-body" onclick="this.classList.toggle('open2')">
+        <div class="leg-hdr"><span class="leg-country">${leg.flag||''} ${leg.country}</span><span class="leg-days-l">${leg.days} · ${leg.duration} days</span></div>
+        <div class="leg-cities">${leg.cities}</div>
+        <div class="leg-photo"><i class="ti ti-camera" style="font-size:10px;vertical-align:-1px;margin-right:3px"></i>${leg.photoTip||''}</div>
+        <div class="leg-exp"><div class="leg-det">${days}</div></div>
+      </div>
+    </div>`);
+  });
+}
+
+function setAsActive(){
+  if(!selCountries.length&&(!STATE.savedItin)){alert('Build an itinerary first.');return;}
+  STATE.activeTrip='custom';st();updateUI();renderShots();
+  alert('Active trip set to your custom itinerary. IG shots and AI chat updated.');
+}
+
+function handleUpload(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const text=e.target.result;
+    STATE.savedItin={type:'upload',text,filename:file.name};si();
+    const out=document.getElementById('itin-output');
+    const legs=document.getElementById('itin-legs');
+    out.style.display='block';
+    legs.innerHTML=`<div class="card" style="border-color:rgba(143,184,154,.3)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="card-title"><i class="ti ti-file-check" style="vertical-align:-1px;margin-right:6px;color:var(--accent2)"></i>${file.name}</div>
+        <button onclick="parseText(STATE.savedItin.text)" class="primary"><i class="ti ti-wand"></i> Format with AI</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);white-space:pre-wrap;max-height:300px;overflow-y:auto">${text.substring(0,2000)}${text.length>2000?'...':''}</div>
+    </div>`;
+  };
+  reader.readAsText(file);
+}
+
+async function parsePasted(){
+  const text=document.getElementById('paste-itin').value.trim();
+  if(!text){alert('Paste some itinerary text first.');return;}
+  STATE.savedItin={type:'paste',text};si();
+  await parseText(text);
+}
+
+async function parseText(text){
+  const out=document.getElementById('itin-output');
+  const legs=document.getElementById('itin-legs');
+  out.style.display='block';
+  legs.innerHTML=`<div style="padding:14px 0"><div class="dots"><span></span><span></span><span></span></div><p style="font-size:12px;color:var(--text2);margin-top:8px">Parsing your itinerary...</p></div>`;
+  const prompt=`Parse this travel itinerary into structured JSON. Return ONLY valid JSON array (no markdown): [{"country":"Name","flag":"🇺🇿","days":"Days X–Y","duration":N,"cities":"City1 · City2","color":"#c8a96e","photoTip":"key photo moments","schedule":[{"day":"1","content":"activities"}]}]\n\nText:\n${text.substring(0,3000)}`;
+  try{
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    const clean=(data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    STATE.savedItin={type:'gen',data:parsed};si();
+    renderLegs(parsed,legs);
+  }catch(e){legs.innerHTML=`<div class="card"><div class="card-sub" style="white-space:pre-wrap">${text}</div></div>`;}
+}
+
+// ═══ IG SHOTS ════════════════════════════════════════════════════
+let shotF='all';
+function renderShots(){
+  const at=STATE.activeTrip;
+  let shots=at==='caucasus'?SHOTS_DB.caucasus:SHOTS_DB.centralasia;
+  if(at==='custom'&&STATE.savedItin?.data){
+    const countries=STATE.savedItin.data.map(l=>l.country);
+    const hasCauc=countries.some(c=>['Georgia','Armenia','Azerbaijan'].includes(c));
+    shots=hasCauc?SHOTS_DB.caucasus:SHOTS_DB.centralasia;
+  }
+  const fl=shots.filter(s=>shotF==='all'||s.type===shotF);
+  document.getElementById('shot-list').innerHTML=fl.map(s=>{
+    const sw=(s.sw||s.swatches||[]).map(c=>`<div class="swatch" style="background:${c}"></div>`).join('');
+    const imgEl=s.img?`<img class="shot-img" src="${s.img}" alt="${s.name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="shot-img-ph" style="display:none"><i class="ti ti-photo"></i></div>`:`<div class="shot-img-ph"><i class="ti ti-photo"></i></div>`;
+    return `<div class="shot-card">${imgEl}<div class="shot-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+        <div class="shot-name">${s.name}</div>
+        <span class="pill" style="background:${s.bc};color:${s.bt};border-color:${s.bt};font-size:10px">${s.badge}</span>
+      </div>
+      <div class="shot-loc">${s.country} · ${s.city}</div>
+      <div class="shot-desc">${s.desc}</div>
+      <div style="margin-top:4px"><span class="timing-pill"><i class="ti ti-clock" style="font-size:10px;vertical-align:-1px;margin-right:3px"></i>${s.timing}</span></div>
+      <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:6px">
+        <span style="font-size:10px;color:var(--text3)">Outfit:</span>${sw}
+        <span style="font-size:11px;color:var(--text2)">${s.outfit}</span>
+      </div>
+    </div></div>`;
+  }).join('')||`<p style="font-size:12px;color:var(--text3);padding:16px 0">No shots for this filter. Use the IG Generator tab to create shots for any location.</p>`;
+}
+function filterShots(type,btn){document.querySelectorAll('#page-shotguide .fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');shotF=type;renderShots();}
+
+// ═══ IG GENERATOR ═══════════════════════════════════════════════
+async function genShots(){
+  const q=document.getElementById('gen-input').value.trim();if(!q)return;
+  const res=document.getElementById('gen-results');
+  res.innerHTML=`<div style="padding:14px 0"><div class="dots"><span></span><span></span><span></span></div><p style="font-size:12px;color:var(--text2);margin-top:8px">Generating shot guide for: <em>${q}</em></p></div>`;
+  const prompt=`Travel photography advisor for a specific traveler: Black man from Barbados, 70+ countries, solo, people-in-frame storyteller, loves bold colour and street art, atmospheric night shots, drone/aerial, goes beyond tourist highlights.\n\nFor this location: "${q}"\n\nReturn ONLY valid JSON array (no markdown): [{"name":"shot name","location":"city, country","type":"colour|architecture|nature|atmospheric|aerial","desc":"2-3 sentences tailored to this traveler","timing":"best time and why","swatches":["#hex1","#hex2","#hex3"],"outfit":"specific outfit advice"}]`;
+  try{
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
+    const data=await r.json();
+    const shots=JSON.parse((data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim());
+    const tc={colour:'rgba(200,169,110,.15)',architecture:'rgba(91,143,212,.15)',nature:'rgba(143,184,154,.15)',atmospheric:'rgba(100,80,200,.15)',aerial:'rgba(143,184,154,.15)'};
+    const tt={colour:'#c8a96e',architecture:'#5b8fd4',nature:'#8fb89a',atmospheric:'#9b8fd4',aerial:'#8fb89a'};
+    res.innerHTML=shots.map(s=>{
+      const sw=(s.swatches||[]).map(c=>`<div class="swatch" style="background:${c}"></div>`).join('');
+      return `<div class="shot-card"><div class="shot-img-ph"><i class="ti ti-photo"></i></div><div class="shot-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+          <div class="shot-name">${s.name}</div>
+          <span class="pill" style="background:${tc[s.type]||'rgba(255,255,255,.05)'};color:${tt[s.type]||'var(--text2)'};border-color:${tt[s.type]||'var(--border)'};font-size:10px">${s.type}</span>
+        </div>
+        <div class="shot-loc">${s.location}</div>
+        <div class="shot-desc">${s.desc}</div>
+        <div style="margin-top:4px"><span class="timing-pill"><i class="ti ti-clock" style="font-size:10px;vertical-align:-1px;margin-right:2px"></i>${s.timing}</span></div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:5px">
+          <span style="font-size:10px;color:var(--text3)">Outfit:</span>${sw}
+          <span style="font-size:11px;color:var(--text2)">${s.outfit}</span>
+        </div>
+      </div></div>`;
+    }).join('');
+  }catch(e){res.innerHTML=`<p style="font-size:12px;color:var(--text3);padding:12px 0">Error. Please try again.</p>`;}
+}
+
+// ═══ CAPTIONS ═══════════════════════════════════════════════════
+let capTone='reflective';
+function setTone(t,btn){document.querySelectorAll('#page-captions .fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');capTone=t;}
+async function genCaption(){
+  const loc=document.getElementById('cap-input').value.trim();if(!loc)return;
+  const res=document.getElementById('cap-results');
+  res.innerHTML=`<div style="padding:14px 0"><div class="dots"><span></span><span></span><span></span></div><p style="font-size:12px;color:var(--text2);margin-top:8px">Generating caption for: <em>${loc}</em></p></div>`;
+  const tones={reflective:'contemplative and personal — stood somewhere ancient and felt something real',bold:'confident and punchy — short declarative sentences, strong energy, no fluff',minimal:'extremely short, almost poetic — one or two lines max, let the image do the talking',storytelling:'narrative-driven — draws the reader in like the opening of a short story'};
+  const prompt=`Write an Instagram caption for this traveler: Black man from Barbados, 70+ countries, solo, goes deep — not a tourist. Tone: ${tones[capTone]}.\n\nLocation: "${loc}"\n\nReturn ONLY valid JSON (no markdown): {"caption":"2-4 sentences, first person, ${capTone} tone, no emojis","hashtags":["#tag1","#tag2","#tag3","#tag4","#tag5"],"history":"2-3 sentences of genuinely interesting history most people don't know — not Wikipedia basics","fun_fact":"one surprising little-known fact about this specific place"}`;
+  try{
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,messages:[{role:'user',content:prompt}]})});
+    const data=await r.json();
+    const cap=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+    const hh=(cap.hashtags||[]).map(h=>`<span class="pill p-blue" style="font-size:11px">${h}</span>`).join('');
+    const copyText=(cap.caption||'')+'\n\n'+(cap.hashtags||[]).join(' ');
+    res.innerHTML=`
+      <div class="card" style="margin-bottom:10px;border-color:rgba(200,169,110,.3)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Caption · ${capTone}</div>
+          <button onclick="navigator.clipboard.writeText(${JSON.stringify(copyText)}).then(()=>this.textContent='Copied!').catch(()=>this.textContent='Copy failed')"><i class="ti ti-copy" style="font-size:11px;vertical-align:-1px;margin-right:3px"></i>Copy all</button>
+        </div>
+        <div style="font-size:15px;color:var(--text);line-height:1.85;font-family:'DM Serif Display',serif;margin-bottom:14px">${cap.caption||''}</div>
+        <div class="pill-row">${hh}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="card"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">Historical context</div><div style="font-size:12px;color:var(--text2);line-height:1.7">${cap.history||''}</div></div>
+        <div class="card"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px">Unexpected fact</div><div style="font-size:12px;color:var(--text2);line-height:1.7">${cap.fun_fact||''}</div></div>
+      </div>`;
+  }catch(e){res.innerHTML=`<p style="font-size:12px;color:var(--text3);padding:12px 0">Error. Please try again.</p>`;}
+}
+
+// ═══ TRIP COSTS ══════════════════════════════════════════════════
+function initCosts(){
+  const all=[...COST_BASE,...STATE.extraCosts];
+  document.getElementById('cost-cards').innerHTML=all.map(d=>{
+    const bars=d.cats.map(c=>`<div class="crow"><div class="clabel">${c.name}</div><div class="cbar-bg"><div class="cbar-fill" style="width:${Math.round(c.pct)}%"></div></div><div class="camount">$${c.amt.toLocaleString()}</div></div>`).join('');
+    const ins=d.insights.map(i=>`<div class="cinsight">${i}</div>`).join('');
+    return `<div class="cost-card">
+      <div class="cost-header">
+        <div>
+          <div class="cost-trip">${d.trip}</div>
+          <div class="cost-dates">${d.dates} · ${d.days} days · ${d.countries} countries</div>
+          <div class="pill-row" style="margin-top:8px">
+            <span class="pill p-gray">Gross $${d.gross.toLocaleString()}</span>
+            <span class="pill p-green">Net $${d.net.toLocaleString()} CAD</span>
+            <span class="pill p-gold">$${Math.round(d.net/d.days)}/day</span>
+            ${d.url?`<a href="${d.url}" target="_blank" style="text-decoration:none"><span class="pill p-blue"><i class="ti ti-external-link" style="font-size:10px"></i> Dashboard</span></a>`:''}
+          </div>
+        </div>
+        <div><div class="cost-net">$${d.net.toLocaleString()}</div><div class="cost-net-lbl">net CAD</div></div>
+      </div>
+      <div class="cost-bars">${bars}</div>
+      <div class="cinsights">${ins}</div>
+    </div>`;
+  }).join('');
+}
+async function addCost(){
+  const url=document.getElementById('cost-url').value.trim();
+  const status=document.getElementById('cost-status');
+  if(!url){status.textContent='Please enter a URL.';return;}
+  status.textContent='Loading...';
+  try{
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`Extract trip expense data from this URL: ${url}\n\nReturn ONLY valid JSON: {"trip":"name","dates":"range","days":N,"countries":N,"gross":N,"net":N,"url":"${url}","cats":[{"name":"cat","amt":N,"pct":N}],"insights":["insight"]}`}]})});
+    const data=await r.json();
+    const parsed=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
+    if(parsed.trip){STATE.extraCosts.push(parsed);sec();document.getElementById('cost-cards').innerHTML='';initCosts();document.getElementById('cost-url').value='';status.textContent='Loaded.';setTimeout(()=>status.textContent='',3000);}
+    else status.textContent='Could not parse. Try a different link.';
+  }catch(e){status.textContent='Error loading. Make sure the URL is public.';}
+}
+
+// ═══ AI CHAT ═════════════════════════════════════════════════════
+const CH=[];
+async function doChat(){
+  const inp=document.getElementById('chat-input');
+  const text=inp.value.trim();if(!text)return;
+  inp.value='';
+  const log=document.getElementById('chat-log');
+  log.insertAdjacentHTML('beforeend',`<div class="cmsg" style="flex-direction:row-reverse"><div class="cav av-u">You</div><div class="cbub user">${text}</div></div>`);
+  const typing=document.createElement('div');
+  typing.className='cmsg';
+  typing.innerHTML=`<div class="cav av-ai">AI</div><div class="cbub"><div class="dots"><span></span><span></span><span></span></div></div>`;
+  log.appendChild(typing);log.scrollTop=log.scrollHeight;
+  CH.push({role:'user',content:text});
+  const at=TRIPS.find(t=>t.id===STATE.activeTrip);
+  const sys=`You are a Travel Intelligence Assistant. Traveler: ${STATE.visited.length} countries visited, from Barbados, Montreal-based, solo, 5 continents (no Oceania yet). IG style: people-in-frame storyteller, bold colour/murals, atmospheric night shots, drone/aerial. Loves: Rio, Zimbabwe, Morocco, Jamaica, Egypt, Japan, Indonesia, Greece, Italy. Not a foodie. Active next trip: ${at?at.name:'undecided / custom'}. Pipeline: 11 trips planned. Top adventure: freediving with sperm whales #1. Trip cost reference: Morocco+Jordan+Mediterranean = $3,025 CAD net / 32 days / 6 countries. Answer in 3-5 sentences. Be specific and practical.`;
+  try{
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:CH})});
+    const data=await r.json();
+    const reply=data.content?.[0]?.text||'Something went wrong.';
+    CH.push({role:'assistant',content:reply});
+    typing.querySelector('.cbub').textContent=reply;
+  }catch(e){typing.querySelector('.cbub').textContent='Connection error. Please try again.';}
+  log.scrollTop=log.scrollHeight;
+}
+
+// ═══ INIT ═════════════════════════════════════════════════════════
+updateUI();
+renderBL();
+renderShots();
+if(STATE.savedItin?.data){
+  const out=document.getElementById('itin-output');
+  const legs=document.getElementById('itin-legs');
+  out.style.display='block';
+  renderLegs(STATE.savedItin.data,legs);
+  if(STATE.savedItin.countries){selCountries=STATE.savedItin.countries;cDays=STATE.savedItin.days||{};}
+}
+</script>
+</body>
+</html>
