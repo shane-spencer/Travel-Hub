@@ -665,11 +665,18 @@ const SHOTS_DB={
   ]
 };
 
-const COST_BASE=[{
-  trip:"Morocco · Jordan · Mediterranean",dates:"Apr 6 – May 8, 2025",days:32,countries:6,gross:4985,net:3025,url:"https://thunderous-medovik-a7baa0.netlify.app/",
-  cats:[{name:"Transport",amt:1954,pct:39.2},{name:"Accommodation",amt:1289,pct:25.9},{name:"Activities",amt:849,pct:17.0},{name:"Food",amt:722,pct:14.5},{name:"Misc",amt:171,pct:3.4}],
-  insights:["Net cost <b>$3,025 CAD</b> after $2,014 in airline refunds. Exceptional value for 6 countries.","Egypt was the standout value — roughly <b>$166 total</b> for Cairo including pyramids, food and taxis.","Morocco over 15 days averaged <b>$94/day gross</b> including a 3-night Sahara tour.","Jordan Pass at <b>$153</b> covered Petra entry + visa, saving ~$80+ vs buying separately.","Greece was the priciest at <b>~$252/day gross</b> — Mykonos flight ($321) and ferries added up."]
-}];
+const COST_BASE=[
+  {
+    trip:"Morocco · Jordan · Mediterranean",dates:"Apr 6 – May 8, 2025",days:32,countries:6,gross:4985,net:3025,url:"https://thunderous-medovik-a7baa0.netlify.app/",
+    cats:[{name:"Transport",amt:1954,pct:39.2},{name:"Accommodation",amt:1289,pct:25.9},{name:"Activities",amt:849,pct:17.0},{name:"Food",amt:722,pct:14.5},{name:"Misc",amt:171,pct:3.4}],
+    insights:["Net cost <b>$3,025 CAD</b> after $2,014 in airline refunds. Exceptional value for 6 countries.","Egypt was the standout value — roughly <b>$166 total</b> for Cairo including pyramids, food and taxis.","Morocco over 15 days averaged <b>$94/day gross</b> including a 3-night Sahara tour.","Jordan Pass at <b>$153</b> covered Petra entry + visa, saving ~$80+ vs buying separately.","Greece was the priciest at <b>~$252/day gross</b> — Mykonos flight ($321) and ferries added up."]
+  },
+  {
+    trip:"2024 Europe + Middle East",dates:"2024",days:Math.round(24308/180),countries:17,gross:25822,net:24308,url:"https://soft-concha-fbb364.netlify.app/",
+    cats:[{name:"Transport",amt:9698,pct:37.6},{name:"Accommodation",amt:9183,pct:35.6},{name:"Food",amt:2837,pct:11.0},{name:"Groceries",amt:1829,pct:7.1},{name:"Activities",amt:1685,pct:6.5},{name:"Misc",amt:590,pct:2.3}],
+    insights:["<b>17 countries, 39 cities, 551 transactions.</b> Spain, Austria and Malta had 3 travelers; all others were 2.","Transport and accommodation nearly equal at <b>37.6% and 35.6%</b> — together 73% of total spend.","<b>Spain was the most expensive at $4,885</b> — trains across Malaga, Sevilla, Cordoba plus Barcelona accommodation.","The Balkans delivered exceptional value — Kosovo just <b>$212 total</b>. Serbia, Macedonia and Albania all under $1,800.","<b>Paris alone ($2,621) cost more than Serbia + Macedonia + Kosovo + Albania combined.</b> The Western Europe premium is real.","Jordan roundtrip was fully refunded (<b>-$598</b>), making that leg net-zero."]
+  }
+];
 // ═══ STATE ═══════════════════════════════════════════════════════
 const STATE={visited:[],blState:[],activeTrip:'centralasia',savedItin:null,extraCosts:[]};
 function loadState(){
@@ -1093,14 +1100,26 @@ async function addCost(){
   const url=document.getElementById('cost-url').value.trim();
   const status=document.getElementById('cost-status');
   if(!url){status.textContent='Please enter a URL.';return;}
-  status.textContent='Loading...';
+  // Check not already added
+  if([...COST_BASE,...STATE.extraCosts].some(d=>d.url===url)){status.textContent='This dashboard is already loaded.';return;}
+  status.textContent='Fetching dashboard...';
   try{
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,messages:[{role:'user',content:`Extract trip expense data from this URL: ${url}\n\nReturn ONLY valid JSON: {"trip":"name","dates":"range","days":N,"countries":N,"gross":N,"net":N,"url":"${url}","cats":[{"name":"cat","amt":N,"pct":N}],"insights":["insight"]}`}]})});
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1200,messages:[{role:'user',content:`I need you to extract trip expense data from this travel dashboard URL: ${url}\n\nBased on the URL and any context you have, return ONLY valid JSON (no markdown, no backticks):\n{"trip":"trip name and year","dates":"date range or year","days":N,"countries":N,"gross":N,"net":N,"url":"${url}","cats":[{"name":"category name","amt":N,"pct":N}],"insights":["2-3 word insight with bold key figure"]}\n\nIf you cannot determine exact figures, use 0 for numbers and note uncertainty in insights.`}]})});
     const data=await r.json();
-    const parsed=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
-    if(parsed.trip){STATE.extraCosts.push(parsed);sec();document.getElementById('cost-cards').innerHTML='';initCosts();document.getElementById('cost-url').value='';status.textContent='Loaded.';setTimeout(()=>status.textContent='',3000);}
-    else status.textContent='Could not parse. Try a different link.';
-  }catch(e){status.textContent='Error loading. Make sure the URL is public.';}
+    if(!data.content){status.textContent='Could not parse. Try again.';return;}
+    const parsed=JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
+    if(parsed.trip){
+      STATE.extraCosts.push(parsed);
+      sec();
+      document.getElementById('cost-cards').innerHTML='';
+      initCosts();
+      document.getElementById('cost-url').value='';
+      status.textContent='Dashboard loaded.';
+      setTimeout(()=>status.textContent='',3000);
+    } else {
+      status.textContent='Could not parse dashboard data.';
+    }
+  }catch(e){status.textContent='Error: '+e.message;}
 }
 
 // ═══ AI CHAT ═════════════════════════════════════════════════════
