@@ -690,8 +690,12 @@ function loadState(){
     STATE.blState=b?JSON.parse(b):BUCKET.map(x=>x.done);
     STATE.activeTrip=t||'centralasia';
     STATE.savedItin=it?JSON.parse(it):null;
-    STATE.extraCosts=ec?JSON.parse(ec):[];
-  }catch(e){STATE.visited=[...DEFAULT_VISITED];STATE.blState=BUCKET.map(x=>x.done);}
+    // Clear any bad cost data — only keep entries that have valid cats array
+    const rawCosts=ec?JSON.parse(ec):[];
+    STATE.extraCosts=rawCosts.filter(d=>d.trip&&Array.isArray(d.cats)&&d.cats.length>0&&!d.trip.toLowerCase().includes('japan'));
+    // Resave cleaned costs
+    localStorage.setItem('tih_costs',JSON.stringify(STATE.extraCosts));
+  }catch(e){STATE.visited=[...DEFAULT_VISITED];STATE.blState=BUCKET.map(x=>x.done);STATE.extraCosts=[];}
 }
 function sv(){localStorage.setItem('tih_visited',JSON.stringify(STATE.visited));}
 function sb(){localStorage.setItem('tih_bl',JSON.stringify(STATE.blState));}
@@ -1074,13 +1078,18 @@ async function genCaption(){
 // ═══ TRIP COSTS ══════════════════════════════════════════════════
 function initCosts(){
   const all=[...COST_BASE,...STATE.extraCosts];
-  document.getElementById('cost-cards').innerHTML=all.map(d=>{
+  document.getElementById('cost-cards').innerHTML=all.map((d,i)=>{
     const bars=d.cats.map(c=>`<div class="crow"><div class="clabel">${c.name}</div><div class="cbar-bg"><div class="cbar-fill" style="width:${Math.round(c.pct)}%"></div></div><div class="camount">$${c.amt.toLocaleString()}</div></div>`).join('');
     const ins=d.insights.map(i=>`<div class="cinsight">${i}</div>`).join('');
+    const isBase=i<COST_BASE.length;
+    const removeBtn=!isBase?`<button onclick="removeCost(${i-COST_BASE.length})" style="font-size:11px;padding:3px 8px;color:var(--red);border-color:rgba(224,90,78,.3);background:rgba(224,90,78,.08)"><i class="ti ti-trash" style="font-size:11px;vertical-align:-1px;margin-right:3px"></i>Remove</button>`:'';
     return `<div class="cost-card">
       <div class="cost-header">
         <div>
-          <div class="cost-trip">${d.trip}</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div class="cost-trip">${d.trip}</div>
+            ${removeBtn}
+          </div>
           <div class="cost-dates">${d.dates} · ${d.days} days · ${d.countries} countries</div>
           <div class="pill-row" style="margin-top:8px">
             <span class="pill p-gray">Gross $${d.gross.toLocaleString()}</span>
@@ -1095,6 +1104,11 @@ function initCosts(){
       <div class="cinsights">${ins}</div>
     </div>`;
   }).join('');
+}
+function removeCost(i){
+  STATE.extraCosts.splice(i,1);
+  sec();
+  initCosts();
 }
 async function addCost(){
   const url=document.getElementById('cost-url').value.trim();
