@@ -888,7 +888,7 @@ async function generateItinerary(){
   const cl=selCountries.map(c=>`${c}: ${cDays[c]} days`).join(', ');
   const prompt=`Build a day-by-day travel itinerary. Traveler profile: 70+ countries, from Barbados, solo, not a foodie, loves city energy and dramatic nature, shoots bold colour street art and atmospheric night shots, drone photographer, goes beyond tourist highlights. Countries and days: ${cl}. Total days: ${Object.values(cDays).reduce((a,b)=>a+b,0)}. Return ONLY valid JSON array (no markdown): [{"country":"Name","flag":"🇺🇿","days":"Days X–Y","duration":N,"cities":"City1 · City2","color":"#hex","photoTip":"3 key IG shot opportunities","schedule":[{"day":"1–2","content":"specific activities tailored to this traveler"}]}] Include local hidden gems, mention photo/drone opportunities.`;
   try{
-    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:3000,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
     const clean=(data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
     const itin=JSON.parse(clean);
@@ -958,7 +958,7 @@ async function parseText(text){
   legs.innerHTML=`<div style="padding:14px 0"><div class="dots"><span></span><span></span><span></span></div><p style="font-size:12px;color:var(--text2);margin-top:8px">Parsing your itinerary...</p></div>`;
   const prompt=`Parse this travel itinerary into structured JSON. Return ONLY valid JSON array (no markdown): [{"country":"Name","flag":"🇺🇿","days":"Days X–Y","duration":N,"cities":"City1 · City2","color":"#c8a96e","photoTip":"key photo moments","schedule":[{"day":"1","content":"activities"}]}]\n\nText:\n${text.substring(0,3000)}`;
   try{
-    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
     const clean=(data.content?.[0]?.text||'[]').replace(/```json|```/g,'').trim();
     const parsed=JSON.parse(clean);
@@ -1005,7 +1005,7 @@ async function genShots(){
   res.innerHTML=`<div style="padding:14px 0"><div class="dots"><span></span><span></span><span></span></div><p style="font-size:12px;color:var(--text2);margin-top:8px">Generating shot guide for: <em>${q}</em></p></div>`;
   const prompt=`Travel photography advisor for a specific traveler: Black man from Barbados, 70+ countries, solo, people-in-frame storyteller, loves bold colour and street art, atmospheric night shots, drone/aerial, goes beyond tourist highlights.\n\nFor this location: "${q}"\n\nReturn ONLY a valid JSON array (no markdown, no backticks, no explanation): [{"name":"shot name","location":"city, country","type":"colour","desc":"2-3 sentences tailored to this traveler","timing":"best time and why","swatches":["#hex1","#hex2","#hex3"],"outfit":"specific outfit advice"}]\n\nType must be one of: colour, architecture, nature, atmospheric, aerial. Return 3-4 shots.`;
   try{
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
     const data=await r.json();
     if(!data.content){res.innerHTML=`<p style="font-size:12px;color:var(--red);padding:12px 0">API error: ${JSON.stringify(data)}</p>`;return;}
     const raw=data.content[0].text.replace(/```json|```/g,'').trim();
@@ -1041,7 +1041,7 @@ async function genCaption(){
   const tones={reflective:'contemplative and personal — stood somewhere ancient and felt something real',bold:'confident and punchy — short declarative sentences, strong energy, no fluff',minimal:'extremely short, almost poetic — one or two lines max, let the image do the talking',storytelling:'narrative-driven — draws the reader in like the opening of a short story'};
   const prompt=`Write an Instagram caption for this traveler: Black man from Barbados, 70+ countries, solo, goes deep — not a tourist. Tone: ${tones[capTone]}.\n\nLocation: "${loc}"\n\nReturn ONLY valid JSON (no markdown, no backticks): {"caption":"2-4 sentences, first person, no emojis","hashtags":["#tag1","#tag2","#tag3","#tag4","#tag5"],"history":"2-3 sentences of genuinely interesting history most people do not know","fun_fact":"one surprising little-known fact about this specific place"}`;
   try{
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:800,messages:[{role:'user',content:prompt}]})});
     const data=await r.json();
     if(!data.content){res.innerHTML=`<p style="font-size:12px;color:var(--red);padding:12px 0">API error: ${JSON.stringify(data)}</p>`;return;}
     const raw=data.content[0].text.replace(/```json|```/g,'').trim();
@@ -1095,7 +1095,7 @@ async function addCost(){
   if(!url){status.textContent='Please enter a URL.';return;}
   status.textContent='Loading...';
   try{
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:`Extract trip expense data from this URL: ${url}\n\nReturn ONLY valid JSON: {"trip":"name","dates":"range","days":N,"countries":N,"gross":N,"net":N,"url":"${url}","cats":[{"name":"cat","amt":N,"pct":N}],"insights":["insight"]}`}]})});
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,messages:[{role:'user',content:`Extract trip expense data from this URL: ${url}\n\nReturn ONLY valid JSON: {"trip":"name","dates":"range","days":N,"countries":N,"gross":N,"net":N,"url":"${url}","cats":[{"name":"cat","amt":N,"pct":N}],"insights":["insight"]}`}]})});
     const data=await r.json();
     const parsed=JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim());
     if(parsed.trip){STATE.extraCosts.push(parsed);sec();document.getElementById('cost-cards').innerHTML='';initCosts();document.getElementById('cost-url').value='';status.textContent='Loaded.';setTimeout(()=>status.textContent='',3000);}
@@ -1119,7 +1119,7 @@ async function doChat(){
   const at=TRIPS.find(t=>t.id===STATE.activeTrip);
   const sys=`You are a Travel Intelligence Assistant. Traveler: ${STATE.visited.length} countries visited, from Barbados, Montreal-based, solo, 5 continents (no Oceania yet). IG style: people-in-frame storyteller, bold colour/murals, atmospheric night shots, drone/aerial. Loves: Rio, Zimbabwe, Morocco, Jamaica, Egypt, Japan, Indonesia, Greece, Italy. Not a foodie. Active next trip: ${at?at.name:'undecided / custom'}. Pipeline: 11 trips planned. Top adventure: freediving with sperm whales #1. Trip cost reference: Morocco+Jordan+Mediterranean = $3,025 CAD net / 32 days / 6 countries. Answer in 3-5 sentences. Be specific and practical.`;
   try{
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:CH})});
+    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:sys,messages:CH})});
     const data=await r.json();
     const reply=data.content?.[0]?.text||'Something went wrong.';
     CH.push({role:'assistant',content:reply});
