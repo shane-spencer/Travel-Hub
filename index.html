@@ -667,18 +667,18 @@ const SHOTS_DB={
 
 const COST_BASE=[
   {
-    trip:"Morocco · Jordan · Mediterranean",dates:"Apr 6 – May 8, 2025",days:32,countries:6,gross:4985,net:3025,url:"https://thunderous-medovik-a7baa0.netlify.app/",
+    trip:"Morocco · Jordan · Mediterranean · 2025",days:32,countries:6,gross:4985,net:3025,currency:"CAD",url:"https://thunderous-medovik-a7baa0.netlify.app/",
     cats:[{name:"Transport",amt:1954,pct:39.2},{name:"Accommodation",amt:1289,pct:25.9},{name:"Activities",amt:849,pct:17.0},{name:"Food",amt:722,pct:14.5},{name:"Misc",amt:171,pct:3.4}],
     insights:["Net cost <b>$3,025 CAD</b> after $2,014 in airline refunds. Exceptional value for 6 countries.","Egypt was the standout value — roughly <b>$166 total</b> for Cairo including pyramids, food and taxis.","Morocco over 15 days averaged <b>$94/day gross</b> including a 3-night Sahara tour.","Jordan Pass at <b>$153</b> covered Petra entry + visa, saving ~$80+ vs buying separately.","Greece was the priciest at <b>~$252/day gross</b> — Mykonos flight ($321) and ferries added up."]
   },
   {
-    trip:"2024 Europe + Middle East",dates:"2024",days:Math.round(24308/180),countries:17,gross:25822,net:24308,url:"https://soft-concha-fbb364.netlify.app/",
+    trip:"Europe + Middle East · 2024",dates:"2024",days:Math.round(24308/180),countries:17,gross:25822,net:24308,currency:"CAD",url:"https://soft-concha-fbb364.netlify.app/",
     cats:[{name:"Transport",amt:9698,pct:37.6},{name:"Accommodation",amt:9183,pct:35.6},{name:"Food",amt:2837,pct:11.0},{name:"Groceries",amt:1829,pct:7.1},{name:"Activities",amt:1685,pct:6.5},{name:"Misc",amt:590,pct:2.3}],
     insights:["<b>17 countries, 39 cities, 551 transactions.</b> Spain, Austria and Malta had 3 travelers; all others were 2.","Transport and accommodation nearly equal at <b>37.6% and 35.6%</b> — together 73% of total spend.","<b>Spain was the most expensive at $4,885</b> — trains across Malaga, Sevilla, Cordoba plus Barcelona accommodation.","The Balkans delivered exceptional value — Kosovo just <b>$212 total</b>. Serbia, Macedonia and Albania all under $1,800.","<b>Paris alone ($2,621) cost more than Serbia + Macedonia + Kosovo + Albania combined.</b> The Western Europe premium is real.","Jordan roundtrip was fully refunded (<b>-$598</b>), making that leg net-zero."]
   }
 ];
 // ═══ STATE ═══════════════════════════════════════════════════════
-const STATE={visited:[],blState:[],activeTrip:'centralasia',savedItin:null,extraCosts:[]};
+const STATE={visited:[],blState:[],activeTrip:'centralasia',savedItin:null,extraCosts:[],tripNotes:{}};
 function loadState(){
   try{
     const v=localStorage.getItem('tih_visited');
@@ -693,8 +693,8 @@ function loadState(){
     // Clear any bad cost data — only keep entries that have valid cats array
     const rawCosts=ec?JSON.parse(ec):[];
     STATE.extraCosts=rawCosts.filter(d=>d.trip&&Array.isArray(d.cats)&&d.cats.length>0&&!d.trip.toLowerCase().includes('japan'));
-    // Resave cleaned costs
-    localStorage.setItem('tih_costs',JSON.stringify(STATE.extraCosts));
+    const n=localStorage.getItem('tih_notes');
+    STATE.tripNotes=n?JSON.parse(n):{};
   }catch(e){STATE.visited=[...DEFAULT_VISITED];STATE.blState=BUCKET.map(x=>x.done);STATE.extraCosts=[];}
 }
 function sv(){localStorage.setItem('tih_visited',JSON.stringify(STATE.visited));}
@@ -702,6 +702,7 @@ function sb(){localStorage.setItem('tih_bl',JSON.stringify(STATE.blState));}
 function st(){localStorage.setItem('tih_trip',STATE.activeTrip);}
 function si(){localStorage.setItem('tih_itin',JSON.stringify(STATE.savedItin));}
 function sec(){localStorage.setItem('tih_costs',JSON.stringify(STATE.extraCosts));}
+function sn(){localStorage.setItem('tih_notes',JSON.stringify(STATE.tripNotes));}
 loadState();
 
 // ═══ NAV ════════════════════════════════════════════════════════
@@ -767,11 +768,12 @@ function renderPipeline(){
     const ps=t.pills.map(p=>`<span class="pill ${p.c}">${p.t}</span>`).join('');
     const bk=t.bucket.map(b=>`<span class="pill p-gray" style="font-size:10px">${b}</span>`).join('');
     const isA=STATE.activeTrip===t.id;
+    const savedNote=STATE.tripNotes[t.id]||'';
     return `<div class="trip-card${isA?' active-trip':''}" id="tc-${t.id}">
       <div class="tc-top" onclick="document.getElementById('tc-${t.id}').classList.toggle('open')">
         <div style="flex:1;min-width:0"><div style="display:flex;align-items:flex-start;gap:8px">
           <div class="dot" style="background:${t.dc};margin-top:4px"></div>
-          <div><div class="tc-name">${t.name}${isA?'<span class="pill p-green" style="margin-left:8px;font-size:10px">active</span>':''}</div><div class="pill-row">${ps}</div></div>
+          <div><div class="tc-name">${t.name}${isA?'<span class="pill p-green" style="margin-left:8px;font-size:10px">active</span>':''}${savedNote?'<span class="pill p-gold" style="margin-left:6px;font-size:10px"><i class="ti ti-note" style="font-size:9px;vertical-align:-1px;margin-right:2px"></i>note</span>':''}</div><div class="pill-row">${ps}</div></div>
         </div></div>
         <div style="text-align:right;flex-shrink:0"><div class="tc-budget">${t.budget}</div><div class="tc-bs">CAD excl. flights</div><i class="ti ti-chevron-down chevron" style="display:block;margin-top:4px"></i></div>
       </div>
@@ -780,12 +782,34 @@ function renderPipeline(){
         <div class="drow"><span class="dlabel">Window</span><span class="dval">${t.win}</span></div>
         <div class="drow"><span class="dlabel">Why it fits</span><span class="dval">${t.why}</span></div>
         <div class="drow"><span class="dlabel">Bucket hits</span><span class="dval" style="display:flex;flex-wrap:wrap;gap:4px">${bk}</span></div>
+        <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Notes</div>
+          <textarea id="note-${t.id}" onclick="event.stopPropagation()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:72px;line-height:1.6" placeholder="Add notes, flight prices, links, ideas..." oninput="saveNote('${t.id}',this.value)">${savedNote}</textarea>
+        </div>
         <div style="margin-top:8px"><button class="success" onclick="event.stopPropagation();setTripActive('${t.id}')"><i class="ti ti-check"></i> Set as next trip</button></div>
       </div></div>
     </div>`;
   }
   document.getElementById('pl-locked').innerHTML=TRIPS.filter(t=>t.locked).map(card).join('');
   document.getElementById('pl-flex').innerHTML=TRIPS.filter(t=>!t.locked).map(card).join('');
+}
+function saveNote(id,val){
+  STATE.tripNotes[id]=val;
+  sn();
+  // Update note indicator without re-rendering whole pipeline
+  const nameEl=document.querySelector(`#tc-${id} .tc-name`);
+  if(nameEl){
+    const existing=nameEl.querySelector('.note-tag');
+    if(val&&!existing){
+      const tag=document.createElement('span');
+      tag.className='pill p-gold note-tag';
+      tag.style.cssText='margin-left:6px;font-size:10px';
+      tag.innerHTML='<i class="ti ti-note" style="font-size:9px;vertical-align:-1px;margin-right:2px"></i>note';
+      nameEl.appendChild(tag);
+    } else if(!val&&existing){
+      existing.remove();
+    }
+  }
 }
 function setTripActive(id){
   STATE.activeTrip=id;st();
@@ -1076,34 +1100,59 @@ async function genCaption(){
 }
 
 // ═══ TRIP COSTS ══════════════════════════════════════════════════
+// Currency rates to CAD (approximate)
+const RATES={CAD:1,USD:1.37,BDS:0.68,GBP:1.73,EUR:1.47};
+// BDS rate: 1 CAD = 1.46 BDS (so 1 BDS = 0.68 CAD)
+const SYMBOLS={CAD:'CA$',USD:'US$',BDS:'BDS$',GBP:'£',EUR:'€'};
+function toCAD(amt,currency){return amt*(RATES[currency]||1);}
+function fromCAD(amt,currency){return Math.round(amt/(RATES[currency]||1));}
+function fmtAmt(cadAmt,currency){return SYMBOLS[currency]+(fromCAD(cadAmt,currency)).toLocaleString();}
+function bdsAmt(cadAmt){return 'BDS$'+(fromCAD(cadAmt,'BDS')).toLocaleString();}
+
 function initCosts(){
   const all=[...COST_BASE,...STATE.extraCosts];
   document.getElementById('cost-cards').innerHTML=all.map((d,i)=>{
-    const bars=d.cats.map(c=>`<div class="crow"><div class="clabel">${c.name}</div><div class="cbar-bg"><div class="cbar-fill" style="width:${Math.round(c.pct)}%"></div></div><div class="camount">$${c.amt.toLocaleString()}</div></div>`).join('');
-    const ins=d.insights.map(i=>`<div class="cinsight">${i}</div>`).join('');
+    const cur=d.currency||'CAD';
     const isBase=i<COST_BASE.length;
     const removeBtn=!isBase?`<button onclick="removeCost(${i-COST_BASE.length})" style="font-size:11px;padding:3px 8px;color:var(--red);border-color:rgba(224,90,78,.3);background:rgba(224,90,78,.08)"><i class="ti ti-trash" style="font-size:11px;vertical-align:-1px;margin-right:3px"></i>Remove</button>`:'';
-    return `<div class="cost-card">
+    const bars=d.cats.map(c=>`<div class="crow"><div class="clabel">${c.name}</div><div class="cbar-bg"><div class="cbar-fill" style="width:${Math.round(c.pct)}%"></div></div><div class="camount">${fmtAmt(c.amt,cur)}</div></div>`).join('');
+    const ins=d.insights.map(ins=>`<div class="cinsight">${ins}</div>`).join('');
+    const netCAD=cur==='CAD'?d.net:toCAD(d.net,cur);
+    const grossCAD=cur==='CAD'?d.gross:toCAD(d.gross,cur);
+    const curOpts=['CAD','USD','BDS','GBP','EUR'].map(c=>`<option value="${c}"${c===cur?' selected':''}>${c}</option>`).join('');
+    return `<div class="cost-card" id="cc-${i}">
       <div class="cost-header">
-        <div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
             <div class="cost-trip">${d.trip}</div>
             ${removeBtn}
           </div>
           <div class="cost-dates">${d.dates} · ${d.days} days · ${d.countries} countries</div>
           <div class="pill-row" style="margin-top:8px">
-            <span class="pill p-gray">Gross $${d.gross.toLocaleString()}</span>
-            <span class="pill p-green">Net $${d.net.toLocaleString()} CAD</span>
-            <span class="pill p-gold">$${Math.round(d.net/d.days)}/day</span>
+            <span class="pill p-gray">Gross ${fmtAmt(grossCAD,cur)}</span>
+            <span class="pill p-green">Net ${fmtAmt(netCAD,cur)} <span style="opacity:.6;font-size:10px">(${bdsAmt(netCAD)})</span></span>
+            <span class="pill p-gold">${fmtAmt(Math.round(netCAD/d.days),cur)}/day <span style="opacity:.6;font-size:10px">(${bdsAmt(Math.round(netCAD/d.days))})</span></span>
             ${d.url?`<a href="${d.url}" target="_blank" style="text-decoration:none;display:inline-flex"><span class="pill p-blue" style="cursor:pointer"><i class="ti ti-external-link" style="font-size:10px;margin-right:3px"></i> Full dashboard ↗</span></a>`:''}
           </div>
         </div>
-        <div><div class="cost-net">$${d.net.toLocaleString()}</div><div class="cost-net-lbl">net CAD</div></div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="cost-net">${fmtAmt(netCAD,cur)}</div>
+          <div class="cost-net-lbl">${cur} net</div>
+          <div style="font-size:11px;color:var(--accent);margin-top:2px">${bdsAmt(netCAD)}</div>
+          <select onchange="changeCostCurrency(${i},this.value)" style="margin-top:8px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:4px 8px;font-size:11px;color:var(--text2);font-family:'DM Sans',sans-serif;cursor:pointer;outline:none">${curOpts}</select>
+        </div>
       </div>
       <div class="cost-bars">${bars}</div>
       <div class="cinsights">${ins}</div>
     </div>`;
   }).join('');
+}
+function changeCostCurrency(i,cur){
+  const all=[...COST_BASE,...STATE.extraCosts];
+  if(i<COST_BASE.length) COST_BASE[i].currency=cur;
+  else STATE.extraCosts[i-COST_BASE.length].currency=cur;
+  sec();
+  initCosts();
 }
 function removeCost(i){
   STATE.extraCosts.splice(i,1);
