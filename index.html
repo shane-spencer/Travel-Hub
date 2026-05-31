@@ -179,7 +179,24 @@ button.success:hover{background:rgba(143,184,154,.25);}
 .upload-box{background:var(--bg3);border:2px dashed var(--border2);border-radius:var(--r2);padding:24px;text-align:center;cursor:pointer;transition:border-color .15s;}
 .upload-box:hover{border-color:rgba(200,169,110,.4);}
 textarea.txt-inp{width:100%;min-height:100px;resize:vertical;margin-bottom:8px;}
-@media(max-width:700px){.shell{grid-template-columns:1fr;}.sidebar{display:none;}.stats{grid-template-columns:repeat(2,1fr);}.shot-card{grid-template-columns:1fr;}.shot-img,.shot-img-ph{width:100%;height:160px;}}
+@media(max-width:700px){
+  .shell{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .sidebar.mobile-open{display:flex;position:fixed;inset:0;z-index:888;width:240px;height:100vh;}
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .shot-card{grid-template-columns:1fr;}
+  .shot-img,.shot-img-ph{width:100%;height:160px;}
+  .main{padding:16px;}
+  .mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:887;}
+  .mobile-overlay.show{display:block;}
+  .mobile-topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);margin:-16px -16px 16px;position:sticky;top:0;z-index:10;}
+  .mobile-topbar h1{font-size:14px;color:var(--accent);font-family:'DM Serif Display',serif;}
+  .hamburger{background:none;border:none;color:var(--text2);font-size:22px;padding:4px;cursor:pointer;line-height:1;}
+}
+@media(min-width:701px){
+  .mobile-topbar{display:none;}
+  .mobile-overlay{display:none!important;}
+}
 </style>
 </head>
 <body>
@@ -205,16 +222,25 @@ textarea.txt-inp{width:100%;min-height:100px;resize:vertical;margin-bottom:8px;}
   <div class="nav-item" onclick="SP('iggen',this)"><i class="ti ti-sparkles"></i>IG generator</div>
   <div class="nav-item" onclick="SP('captions',this)"><i class="ti ti-writing"></i>Captions</div>
   <div class="nav-sec">Money</div>
-  <div class="nav-item" onclick="SP('costs',this)"><i class="ti ti-receipt"></i>Trip costs</div>
+  <div class="nav-item" onclick="SP('costs',this)"><i class="ti ti-receipt"></i>Major trip costs</div>
   <div class="nav-sec">AI</div>
   <div class="nav-item" onclick="SP('chat',this)"><i class="ti ti-message-circle"></i>AI chat</div>
 </nav>
 <main class="main">
+<div class="mobile-topbar">
+  <h1>✦ Travel Intel</h1>
+  <button class="hamburger" onclick="toggleMobileNav()">☰</button>
+</div>
+<div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileNav()"></div>
 <!-- PROFILE -->
 <div class="page active" id="page-profile">
   <div class="topbar"><h2 class="page-title">My <span>profile</span></h2><span class="badge">Instagram confirmed</span></div>
   <div class="stats">
-    <div class="stat"><div class="stat-l">Countries</div><div class="stat-v" id="prof-count">70</div><div class="stat-s">Elite explorer</div></div>
+    <div class="stat" onclick="showVisitedMap()" style="cursor:pointer;border-color:rgba(200,169,110,.3);transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(200,169,110,.3)'">
+      <div class="stat-l">Countries visited</div>
+      <div class="stat-v" id="prof-count" style="color:var(--accent)">70</div>
+      <div class="stat-s" style="color:var(--accent2)">tap to see map ↗</div>
+    </div>
     <div class="stat"><div class="stat-l">Continents</div><div class="stat-v">5</div><div class="stat-s">Not Oceania yet</div></div>
     <div class="stat"><div class="stat-l">Trips planned</div><div class="stat-v">11</div><div class="stat-s">~28 weeks</div></div>
     <div class="stat"><div class="stat-l">Pipeline est.</div><div class="stat-v" style="font-size:17px;padding-top:4px">~$30K</div><div class="stat-s">CAD excl. flights</div></div>
@@ -245,6 +271,13 @@ textarea.txt-inp{width:100%;min-height:100px;resize:vertical;margin-bottom:8px;}
     <div class="card-sub">Click any country to mark as visited. Saves automatically and updates your count everywhere.</div>
   </div>
   <div class="filter-row" id="region-filters"></div>
+  <div id="continent-map-panel" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div id="continent-map-title" style="font-size:13px;font-weight:500;color:var(--text)"></div>
+      <div id="continent-map-stats" style="font-size:11px;color:var(--accent2)"></div>
+    </div>
+    <div id="continent-map-svg" style="background:var(--bg3);border-radius:var(--r);overflow:hidden;height:320px"></div>
+  </div>
   <div style="margin-bottom:12px"><input type="text" class="txt-inp" style="width:100%" placeholder="Search country..." oninput="searchCountries(this.value)"/></div>
   <div class="country-grid" id="country-grid"></div>
 </div>
@@ -429,14 +462,23 @@ textarea.txt-inp{width:100%;min-height:100px;resize:vertical;margin-bottom:8px;}
 
 <!-- TRIP COSTS -->
 <div class="page" id="page-costs">
-  <div class="topbar"><h2 class="page-title">Trip <span>costs</span></h2></div>
-  <p style="font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.7">Real spending data from your trips. Paste more dashboard links to add them.</p>
+  <div class="topbar"><h2 class="page-title">Major trip <span>costs</span></h2></div>
+
+  <!-- AGGREGATE STATS -->
+  <div id="cost-aggregate" style="margin-bottom:20px"></div>
+
+  
+
+  <!-- TRIP FILTER TABS -->
+  <div class="filter-row" id="cost-filter-tabs" style="margin-bottom:16px"></div>
+
+  <!-- COST CARDS -->
   <div id="cost-cards"></div>
-  <div class="add-cost-box">
-    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Add another trip cost dashboard</p>
-    <input type="text" class="txt-inp" id="cost-url" style="width:100%;margin-bottom:8px" placeholder="https://your-trip-dashboard.netlify.app/"/>
-    <button class="primary" onclick="addCost()"><i class="ti ti-plus"></i> Load dashboard</button>
-    <div id="cost-status" style="font-size:11px;color:var(--text3);margin-top:8px;min-height:16px"></div>
+
+  <div class="add-cost-box" style="margin-top:8px">
+    <p style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px">Add another trip dashboard</p>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">Share your dashboard link in the <strong style="color:var(--accent)">AI chat</strong> tab — Claude will read it and add the data accurately.</p>
+    <button class="primary" onclick="SP('chat',document.querySelector('.nav-item:last-child'))"><i class="ti ti-message-circle" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i> Go to AI chat to add a dashboard</button>
   </div>
 </div>
 
@@ -455,6 +497,18 @@ textarea.txt-inp{width:100%;min-height:100px;resize:vertical;margin-bottom:8px;}
   </div>
 </div>
 
+
+<!-- GLOBAL MAP MODAL - outside all page divs -->
+<div id="country-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;padding:24px;overflow-y:auto" onclick="if(event.target===this)closeCostModal()">
+  <div style="background:#161618;border:1px solid rgba(255,255,255,0.15);border-radius:14px;max-width:900px;margin:0 auto;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 id="modal-title" style="font-size:18px;color:#f0ede8;font-family:'DM Serif Display',serif;font-weight:400"></h2>
+      <button onclick="closeCostModal()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#f0ede8;font-size:16px;padding:4px 12px;cursor:pointer">✕</button>
+    </div>
+    <div id="modal-country-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;max-height:120px;overflow-y:auto"></div>
+    <div id="modal-map" style="background:#1e1e21;border-radius:10px;overflow:hidden"></div>
+  </div>
+</div>
 </main>
 </div>
 <script>
@@ -667,14 +721,34 @@ const SHOTS_DB={
 
 const COST_BASE=[
   {
-    trip:"Morocco · Jordan · Mediterranean · 2025",days:32,countries:6,gross:4985,net:3025,currency:"CAD",url:"https://thunderous-medovik-a7baa0.netlify.app/",
+    trip:"Morocco · Jordan · Mediterranean · 2026",dates:"Apr 6 – May 8, 2026",days:32,countries:6,gross:4985,net:3025,currency:"CAD",url:"https://thunderous-medovik-a7baa0.netlify.app/",
+    countries_list:["Morocco","Jordan","Egypt","Cyprus","Greece","Netherlands"],
     cats:[{name:"Transport",amt:1954,pct:39.2},{name:"Accommodation",amt:1289,pct:25.9},{name:"Activities",amt:849,pct:17.0},{name:"Food",amt:722,pct:14.5},{name:"Misc",amt:171,pct:3.4}],
     insights:["Net cost <b>$3,025 CAD</b> after $2,014 in airline refunds. Exceptional value for 6 countries.","Egypt was the standout value — roughly <b>$166 total</b> for Cairo including pyramids, food and taxis.","Morocco over 15 days averaged <b>$94/day gross</b> including a 3-night Sahara tour.","Jordan Pass at <b>$153</b> covered Petra entry + visa, saving ~$80+ vs buying separately.","Greece was the priciest at <b>~$252/day gross</b> — Mykonos flight ($321) and ferries added up."]
   },
   {
-    trip:"Europe + Middle East · 2024",dates:"2024",days:Math.round(24308/180),countries:17,gross:25822,net:24308,currency:"CAD",url:"https://soft-concha-fbb364.netlify.app/",
+    trip:"Europe + Middle East · 2024",dates:"2024",days:135,countries:17,gross:25822,net:24308,currency:"CAD",url:"https://soft-concha-fbb364.netlify.app/",
+    countries_list:["Spain","France","Italy","Germany","Austria","Belgium","Netherlands","Portugal","Malta","Cyprus","Greece","Serbia","Kosovo","Albania","North Macedonia","Montenegro","Jordan"],
     cats:[{name:"Transport",amt:9698,pct:37.6},{name:"Accommodation",amt:9183,pct:35.6},{name:"Food",amt:2837,pct:11.0},{name:"Groceries",amt:1829,pct:7.1},{name:"Activities",amt:1685,pct:6.5},{name:"Misc",amt:590,pct:2.3}],
     insights:["<b>17 countries, 39 cities, 551 transactions.</b> Spain, Austria and Malta had 3 travelers; all others were 2.","Transport and accommodation nearly equal at <b>37.6% and 35.6%</b> — together 73% of total spend.","<b>Spain was the most expensive at $4,885</b> — trains across Malaga, Sevilla, Cordoba plus Barcelona accommodation.","The Balkans delivered exceptional value — Kosovo just <b>$212 total</b>. Serbia, Macedonia and Albania all under $1,800.","<b>Paris alone ($2,621) cost more than Serbia + Macedonia + Kosovo + Albania combined.</b> The Western Europe premium is real.","Jordan roundtrip was fully refunded (<b>-$598</b>), making that leg net-zero."]
+  },
+  {
+    trip:"Asia Family Trip · 2022–23",dates:"Nov 2022 – Mar 2023",days:107,countries:10,gross:26596,net:26596,currency:"CAD",url:"https://animated-lolly-1ee175.netlify.app/",
+    countries_list:["Japan","Vietnam","Cambodia","Thailand","Malaysia","Indonesia","Singapore","Philippines","India","UAE"],
+    cats:[{name:"Transport",amt:9200,pct:34.6},{name:"Accommodation",amt:5149,pct:19.4},{name:"Activities",amt:3903,pct:14.7},{name:"Home & Insurance",amt:3659,pct:13.8},{name:"Food",amt:3639,pct:13.7},{name:"Misc",amt:627,pct:2.4},{name:"Visas",amt:420,pct:1.6}],
+    insights:["<b>$249/day total or $124/day per person</b> across 107 nights — Japan, Vietnam, Cambodia, Thailand, Malaysia, Indonesia, Singapore, Philippines, India, UAE.","<b>Transportation at $9,200 (34.6%)</b> dominated by major flight legs. Flight to Delhi alone was $1,001 for the family.","<b>Thailand ($4,412) and Indonesia ($3,853)</b> were the two most expensive countries — most nights, most stops.","<b>Cambodia was best value at $505 pp total</b> — Phnom Penh + Siem Reap including Angkor Wat tickets at ~$63/day.","<b>Home bills added $3,659</b> — rent, hydro, internet, health insurance running back in Canada during the 4 months.","<b>Accommodation averaged $44.58/night</b> — Singapore ($293 for 3 nights) and Dubai ($668 for 6 nights) at the high end."]
+  },
+  {
+    trip:"Europe · Africa · Middle East · 2019",dates:"2019",days:90,countries:21,gross:21708,net:21708,currency:"BDS",url:"https://creative-haupia-541466.netlify.app/",
+    countries_list:["Spain","France","Monaco","Italy","Switzerland","Germany","Czech Republic","Austria","Slovakia","Hungary","Croatia","Montenegro","Bosnia","Turkey","UAE","Tanzania","Rwanda","Uganda","Poland","USA","Barbados"],
+    cats:[{name:"Transport",amt:7011,pct:32.5},{name:"Activities",amt:5245,pct:24.3},{name:"Accommodation",amt:3636,pct:16.8},{name:"Food",amt:3095,pct:14.3},{name:"Misc",amt:1780,pct:8.2},{name:"Medical",amt:818,pct:3.8}],
+    insights:["<b>BDS$21,585 total</b> across Spain, France, Italy, Germany, Switzerland, Czech Republic, Croatia, Bosnia, Montenegro, Turkey, Poland, Hungary, Slovakia, Austria, Tanzania, Rwanda, Uganda, Dubai.","<b>Tanzania ($3,463) was the most expensive country at 16%</b> of total spend — safaris and flights within East Africa.","<b>Activities were unusually high at 24.3%</b> — Barcelona FC ticket ($406), multiple safaris, gorilla trekking in Rwanda.","<b>Germany, Rwanda and Turkey all ~10-11%</b> each — the three anchor destinations after Tanzania.","<b>Croatia ($1,930) delivered great value</b> — Plitvice Lakes, Split, Dubrovnik, Zadar across multiple nights.","<b>Medical/travel insurance at $818 (3.8%)</b> including malaria medication and full travel insurance for the trip."]
+  },
+  {
+    trip:"Africa · 2010",dates:"2010",days:28,countries:5,gross:12241,net:12241,currency:"BDS",url:"https://enchanting-mochi-6b7b66.netlify.app/",
+    countries_list:["Egypt","South Africa","Zimbabwe","Zambia","Botswana"],
+    cats:[{name:"Transportation",amt:6460,pct:52.8},{name:"Activities",amt:3904,pct:31.9},{name:"Miscellaneous",amt:1374,pct:11.2},{name:"Accommodation",amt:313,pct:2.6},{name:"Medical & Visas",amt:179,pct:1.5},{name:"Food",amt:10,pct:0.1}],
+    insights:["<b>Transport dominated at 52.8% (BDS$6,460)</b> — multi-continent trip from Barbados through London, Egypt, South Africa and Zimbabwe. BGI-LGW leg alone was $2,283.","<b>Activities were 31.9% (BDS$3,904)</b> — Victoria Falls ($1,176), Nile Cruise ($839), Johannesburg Safari ($1,084), Shark dive ($319). Destination-defining splurges.","<b>Accommodation was just 2.6% ($313)</b> — largely bundled into safari and cruise packages. African tour packages typically include accommodation.","<b>South Africa was most expensive at $4,272</b> — safari, shark dive, car rentals and spending money. Zimbabwe second at $2,392 from Victoria Falls activities.","<b>ASW to JNB flight not listed</b> — totals balance without it, suggesting it was redeemed on miles or included in a package.","<b>Pre-trip Barbados costs $2,339</b> — BGI-LGW flight ($2,283) plus malaria tablets, yellow fever vaccine and visa photos."]
   }
 ];
 // ═══ STATE ═══════════════════════════════════════════════════════
@@ -705,13 +779,22 @@ function sec(){localStorage.setItem('tih_costs',JSON.stringify(STATE.extraCosts)
 function sn(){localStorage.setItem('tih_notes',JSON.stringify(STATE.tripNotes));}
 loadState();
 
+function toggleMobileNav(){
+  document.querySelector('.sidebar').classList.toggle('mobile-open');
+  document.getElementById('mobile-overlay').classList.toggle('show');
+}
+function closeMobileNav(){
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('mobile-overlay').classList.remove('show');
+}
 // ═══ NAV ════════════════════════════════════════════════════════
-const INITS={countries:initCountries,pipeline:initPipeline,seasons:initSeasons,booking:initBooking,bucketlist:()=>renderBL(),adventures:initAdv,nexttrip:initPlanner,shotguide:()=>renderShots(),costs:initCosts};
 function SP(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
+  closeMobileNav();
+  const INITS={countries:initCountries,pipeline:initPipeline,seasons:initSeasons,booking:initBooking,bucketlist:()=>renderBL(),adventures:initAdv,nexttrip:initPlanner,shotguide:()=>renderShots(),costs:initCosts};
   if(INITS[name]) INITS[name]();
   updateUI();
 }
@@ -728,6 +811,24 @@ function updateUI(){
 }
 
 // ═══ COUNTRIES ══════════════════════════════════════════════════
+// Continent bounding boxes [minLon, minLat, maxLon, maxLat] for D3 fitExtent
+const CONTINENT_BOUNDS={
+  'Africa':[-20,-35,52,38],
+  'Asia':[25,-10,145,55],
+  'Europe':[-25,35,45,72],
+  'North America':[-170,5,-50,75],
+  'South America':[-82,-56,-34,13],
+  'Oceania':[110,-48,180,10]
+};
+const CONTINENT_COUNTRIES={
+  'Africa':Object.keys(ALL_COUNTRIES).includes('Africa')?ALL_COUNTRIES['Africa']:ALL_COUNTRIES.Africa,
+  'Asia':ALL_COUNTRIES.Asia,
+  'Europe':ALL_COUNTRIES.Europe,
+  'North America':ALL_COUNTRIES['North America'],
+  'South America':ALL_COUNTRIES['South America'],
+  'Oceania':ALL_COUNTRIES.Oceania
+};
+
 let cntRegFilter='All';
 function initCountries(){
   const rf=document.getElementById('region-filters');
@@ -736,11 +837,119 @@ function initCountries(){
       const b=document.createElement('button');
       b.className='fbtn'+(r==='All'?' active':'');
       b.textContent=r;
-      b.onclick=()=>{document.querySelectorAll('#region-filters .fbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');cntRegFilter=r;renderCntGrid('');};
+      b.onclick=()=>{
+        document.querySelectorAll('#region-filters .fbtn').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        cntRegFilter=r;
+        renderCntGrid('');
+        showContinentMap(r);
+      };
       rf.appendChild(b);
     });
   }
   renderCntGrid('');
+  showContinentMap('All');
+}
+
+function showContinentMap(region){
+  const panel=document.getElementById('continent-map-panel');
+  const mapDiv=document.getElementById('continent-map-svg');
+  const title=document.getElementById('continent-map-title');
+  const stats=document.getElementById('continent-map-stats');
+  if(region==='All'){panel.style.display='none';return;}
+  panel.style.display='block';
+  const regionCountries=ALL_COUNTRIES[region]||[];
+  const visited=regionCountries.filter(c=>STATE.visited.includes(c));
+  title.textContent=region;
+  stats.textContent=visited.length+' / '+regionCountries.length+' countries visited';
+  mapDiv.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px">Loading map...</div>';
+  function renderContinent(world){
+    const w=mapDiv.offsetWidth||600, h=320;
+    mapDiv.innerHTML='';
+    const svg=d3.select('#continent-map-svg').append('svg')
+      .attr('width','100%').attr('height',h)
+      .style('background','#111').style('border-radius','8px');
+
+    const countries110=topojson.feature(world,world.objects.countries);
+
+    // Filter to only this continent's features
+    const continentFeatures=countries110.features.filter(f=>{
+      const name=f.properties.name||'';
+      return regionCountries.some(c=>matchCountry(name,[c]));
+    });
+
+    if(!continentFeatures.length){
+      mapDiv.innerHTML='<p style="color:var(--text3);font-size:12px;padding:20px;text-align:center">No country data available</p>';
+      return;
+    }
+
+    // Create a collection of just continent features and fit projection to it
+    const continentCollection={type:'FeatureCollection',features:continentFeatures};
+
+    // Use mercator for better continent zoom control
+    const proj=d3.geoMercator().fitExtent([[20,20],[w-20,h-20]], continentCollection);
+    const path=d3.geoPath().projection(proj);
+
+    // Draw continent background
+    svg.append('rect').attr('width',w).attr('height',h).attr('fill','#111');
+
+    // Draw only continent countries
+    continentFeatures.forEach(f=>{
+      const name=f.properties.name||'';
+      const isVisited=matchCountry(name,visited);
+      svg.append('path')
+        .datum(f)
+        .attr('d',path)
+        .attr('fill',isVisited?'#8fb89a':'#1e2e1e')
+        .attr('stroke','rgba(255,255,255,0.25)')
+        .attr('stroke-width',0.8)
+        .append('title').text(name+(isVisited?' ✓':' — not yet'));
+    });
+
+    // Add country labels for larger countries
+    continentFeatures.forEach(f=>{
+      const name=f.properties.name||'';
+      try{
+        const centroid=path.centroid(f);
+        if(!isNaN(centroid[0])&&!isNaN(centroid[1])){
+          const bounds=path.bounds(f);
+          const bw=bounds[1][0]-bounds[0][0];
+          const bh=bounds[1][1]-bounds[0][1];
+          // Only label if country is big enough to show text
+          if(bw>25&&bh>15){
+            const isVisited=matchCountry(name,visited);
+            // Shorten some long names
+            const label=name.replace('United Kingdom','UK').replace('United States of America','USA').replace('Democratic Republic of the Congo','DR Congo').replace('Central African Republic','CAR').replace('Bosnia and Herzegovina','Bosnia').replace('North Macedonia','N. Macedonia').replace('United Arab Emirates','UAE').replace('United Republic of Tanzania','Tanzania').replace('South Africa','S. Africa').replace("Côte d'Ivoire","Côte d'Ivoire");
+            svg.append('text')
+              .attr('x',centroid[0]).attr('y',centroid[1])
+              .attr('text-anchor','middle').attr('dominant-baseline','middle')
+              .attr('font-size',bw>60?10:8)
+              .attr('fill',isVisited?'rgba(0,0,0,0.7)':'rgba(255,255,255,0.35)')
+              .attr('font-family','DM Sans,sans-serif')
+              .attr('pointer-events','none')
+              .text(label);
+          }
+        }
+      }catch(e){}
+    });
+
+    // Legend
+    const leg=svg.append('g').attr('transform',`translate(12,${h-22})`);
+    leg.append('rect').attr('width',10).attr('height',10).attr('fill','#8fb89a').attr('rx',2);
+    leg.append('text').attr('x',14).attr('y',9).attr('fill','rgba(255,255,255,0.5)').attr('font-size',9).attr('font-family','DM Sans,sans-serif').text('Visited ('+visited.length+')');
+    leg.append('rect').attr('x',80).attr('width',10).attr('height',10).attr('fill','#1e2e1e').attr('stroke','rgba(255,255,255,0.25)').attr('stroke-width',0.5).attr('rx',2);
+    leg.append('text').attr('x',94).attr('y',9).attr('fill','rgba(255,255,255,0.5)').attr('font-size',9).attr('font-family','DM Sans,sans-serif').text('Not yet ('+(regionCountries.length-visited.length)+')');
+  }
+  function go(){
+    if(window._worldData) renderContinent(window._worldData);
+    else fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+      .then(r=>r.json()).then(w=>{window._worldData=w;renderContinent(w);})
+      .catch(()=>{mapDiv.innerHTML='<p style="color:var(--text3);font-size:12px;padding:20px;text-align:center">Map requires internet connection</p>';});
+  }
+  function loadScript(src,cb){const s=document.createElement('script');s.src=src;s.onload=cb;document.head.appendChild(s);}
+  if(window.d3&&window.topojson){go();}
+  else if(window.d3&&!window.topojson){loadScript('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js',go);}
+  else{loadScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js',()=>{loadScript('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js',go);});}
 }
 function searchCountries(q){renderCntGrid(q);}
 function renderCntGrid(q){
@@ -1100,34 +1309,82 @@ async function genCaption(){
 }
 
 // ═══ TRIP COSTS ══════════════════════════════════════════════════
-// Currency rates to CAD (approximate)
 const RATES={CAD:1,USD:1.37,BDS:0.68,GBP:1.73,EUR:1.47};
-// BDS rate: 1 CAD = 1.46 BDS (so 1 BDS = 0.68 CAD)
 const SYMBOLS={CAD:'CA$',USD:'US$',BDS:'BDS$',GBP:'£',EUR:'€'};
-function toCAD(amt,currency){return amt*(RATES[currency]||1);}
-function fromCAD(amt,currency){return Math.round(amt/(RATES[currency]||1));}
-function fmtAmt(cadAmt,currency){return SYMBOLS[currency]+(fromCAD(cadAmt,currency)).toLocaleString();}
+function fromCAD(amt,cur){return Math.round(amt/(RATES[cur]||1));}
+function fmtAmt(cadAmt,cur){return SYMBOLS[cur]+(fromCAD(cadAmt,cur)).toLocaleString();}
 function bdsAmt(cadAmt){return 'BDS$'+(fromCAD(cadAmt,'BDS')).toLocaleString();}
 
+
+let activeCostFilter='all';
+
+function getAllTripCountries(){
+  const set=new Set();
+  [...COST_BASE,...STATE.extraCosts].forEach(d=>(d.countries_list||[]).forEach(c=>set.add(c)));
+  return [...set];
+}
+
 function initCosts(){
+  buildCostAggregate();
+  buildCostFilterTabs();
+  renderCostCards();
+}
+
+function buildCostAggregate(){
   const all=[...COST_BASE,...STATE.extraCosts];
-  document.getElementById('cost-cards').innerHTML=all.map((d,i)=>{
+  const allC=getAllTripCountries();
+  const totalCAD=all.reduce((s,d)=>s+(d.currency==='CAD'?d.net:d.net*(RATES[d.currency]||1)),0);
+  document.getElementById('cost-aggregate').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+      <div class="stat"><div class="stat-l">Total trips</div><div class="stat-v">${all.length}</div><div class="stat-s">tracked</div></div>
+      <div class="stat" onclick="showCountryModal('all')" style="cursor:pointer;border-color:rgba(200,169,110,.3);transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(200,169,110,.3)'">
+        <div class="stat-l">Countries covered</div>
+        <div class="stat-v" style="color:var(--accent)">${allC.length}</div>
+        <div class="stat-s" style="color:var(--accent2)">tap to see map ↗</div>
+      </div>
+      <div class="stat"><div class="stat-l">Total days abroad</div><div class="stat-v">${all.reduce((s,d)=>s+d.days,0)}</div><div class="stat-s">across all trips</div></div>
+      <div class="stat"><div class="stat-l">Total spend (CAD)</div><div class="stat-v" style="font-size:15px;padding-top:4px">CA$${Math.round(totalCAD).toLocaleString()}</div><div class="stat-s">all trips combined</div></div>
+    </div>`;
+}
+
+function buildCostFilterTabs(){
+  const all=[...COST_BASE,...STATE.extraCosts];
+  const tabs=document.getElementById('cost-filter-tabs');
+  tabs.innerHTML='';
+  const btn0=document.createElement('button');
+  btn0.className='fbtn'+(activeCostFilter==='all'?' active':'');
+  btn0.textContent='All trips';
+  btn0.onclick=()=>{activeCostFilter='all';buildCostFilterTabs();renderCostCards();};
+  tabs.appendChild(btn0);
+  all.forEach((d,i)=>{
+    const btn=document.createElement('button');
+    btn.className='fbtn'+(activeCostFilter===String(i)?' active':'');
+    btn.textContent=d.trip.split('·')[0].trim();
+    btn.onclick=()=>{activeCostFilter=String(i);buildCostFilterTabs();renderCostCards();};
+    tabs.appendChild(btn);
+  });
+}
+
+function renderCostCards(){
+  const all=[...COST_BASE,...STATE.extraCosts];
+  const toShow=activeCostFilter==='all'?all.map((d,i)=>({d,i})):[{d:all[parseInt(activeCostFilter)],i:parseInt(activeCostFilter)}].filter(x=>x.d);
+  document.getElementById('cost-cards').innerHTML=toShow.map(({d,i})=>{
     const cur=d.currency||'CAD';
     const isBase=i<COST_BASE.length;
     const removeBtn=!isBase?`<button onclick="removeCost(${i-COST_BASE.length})" style="font-size:11px;padding:3px 8px;color:var(--red);border-color:rgba(224,90,78,.3);background:rgba(224,90,78,.08)"><i class="ti ti-trash" style="font-size:11px;vertical-align:-1px;margin-right:3px"></i>Remove</button>`:'';
-    const bars=d.cats.map(c=>`<div class="crow"><div class="clabel">${c.name}</div><div class="cbar-bg"><div class="cbar-fill" style="width:${Math.round(c.pct)}%"></div></div><div class="camount">${fmtAmt(c.amt,cur)}</div></div>`).join('');
-    const ins=d.insights.map(ins=>`<div class="cinsight">${ins}</div>`).join('');
-    const netCAD=cur==='CAD'?d.net:toCAD(d.net,cur);
-    const grossCAD=cur==='CAD'?d.gross:toCAD(d.gross,cur);
+    const bars=(d.cats||[]).map(c=>`<div class="crow"><div class="clabel">${c.name}</div><div class="cbar-bg"><div class="cbar-fill" style="width:${Math.round(c.pct)}%"></div></div><div class="camount">${fmtAmt(c.amt,cur)}</div></div>`).join('');
+    const ins=(d.insights||[]).map(ins=>`<div class="cinsight">${ins}</div>`).join('');
+    const netCAD=cur==='CAD'?d.net:d.net*(RATES[cur]||1);
+    const grossCAD=cur==='CAD'?d.gross:d.gross*(RATES[cur]||1);
     const curOpts=['CAD','USD','BDS','GBP','EUR'].map(c=>`<option value="${c}"${c===cur?' selected':''}>${c}</option>`).join('');
-    return `<div class="cost-card" id="cc-${i}">
+    const cList=d.countries_list||[];
+    const cTile=cList.length?`<div onclick="showCountryModal(${i})" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:rgba(143,184,154,.1);border:1px solid rgba(143,184,154,.3);border-radius:99px;padding:3px 10px;font-size:11px;color:var(--accent2);margin-top:6px"><i class="ti ti-map-pin" style="font-size:10px"></i>${cList.length} countries · see map ↗</div>`:'';
+    return `<div class="cost-card">
       <div class="cost-header">
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
-            <div class="cost-trip">${d.trip}</div>
-            ${removeBtn}
-          </div>
-          <div class="cost-dates">${d.dates} · ${d.days} days · ${d.countries} countries</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px"><div class="cost-trip">${d.trip}</div>${removeBtn}</div>
+          <div class="cost-dates">${d.dates||''} · ${d.days} days · ${d.countries} countries</div>
+          ${cTile}
           <div class="pill-row" style="margin-top:8px">
             <span class="pill p-gray">Gross ${fmtAmt(grossCAD,cur)}</span>
             <span class="pill p-green">Net ${fmtAmt(netCAD,cur)} <span style="opacity:.6;font-size:10px">(${bdsAmt(netCAD)})</span></span>
@@ -1147,43 +1404,172 @@ function initCosts(){
     </div>`;
   }).join('');
 }
-function changeCostCurrency(i,cur){
+
+function showVisitedMap(){
+  openMapModal('Countries visited — '+STATE.visited.length+' total', STATE.visited, null);
+}
+
+function showCountryModal(tripIndex){
   const all=[...COST_BASE,...STATE.extraCosts];
-  if(i<COST_BASE.length) COST_BASE[i].currency=cur;
-  else STATE.extraCosts[i-COST_BASE.length].currency=cur;
-  sec();
-  initCosts();
+  let countries,title;
+  if(tripIndex==='all'){countries=getAllTripCountries();title='All trips — '+countries.length+' countries covered';}
+  else{const d=all[tripIndex];countries=d.countries_list||[];title=d.trip+' — '+countries.length+' countries';}
+  openMapModal(title, countries, null);
 }
-function removeCost(i){
-  STATE.extraCosts.splice(i,1);
-  sec();
-  initCosts();
+
+function openMapModal(title, countries, activeFilter){
+  // Show modal immediately with loading state
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-country-list').innerHTML='<span style="font-size:12px;color:var(--text3)">Loading...</span>';
+  document.getElementById('modal-map').style.height='400px';
+  document.getElementById('modal-map').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px">Loading map...</div>';
+  document.getElementById('country-modal').style.display='block';
+  document.body.style.overflow='hidden';
+  // Then populate
+  let _active=activeFilter;
+  function renderPills(a){
+    document.getElementById('modal-country-list').innerHTML=countries.map(c=>{
+      const on=a===c;
+      return `<span class="pill p-green" style="cursor:pointer;font-size:12px;${on?'background:rgba(143,184,154,.4);border-color:#8fb89a':'opacity:0.7'}" onclick="window._pillClick('${c.replace(/'/g,"\'")}')"> ${c}${on?' ✕':''}</span>`;
+    }).join('');
+  }
+  window._pillClick=function(c){
+    _active=(_active===c)?null:c;
+    renderPills(_active);
+    buildMap(_active?[_active]:countries);
+  };
+  renderPills(null);
+  const mapDiv=document.getElementById('modal-map');
+  mapDiv.style.height='400px';
+  mapDiv.innerHTML='<div id="d3-map" style="width:100%;height:100%"></div>';
+  buildMap(countries);
 }
-async function addCost(){
-  const url=document.getElementById('cost-url').value.trim();
-  const status=document.getElementById('cost-status');
-  if(!url){status.textContent='Please enter a URL.';return;}
-  // Check not already added
-  if([...COST_BASE,...STATE.extraCosts].some(d=>d.url===url)){status.textContent='This dashboard is already loaded.';return;}
-  status.textContent='Fetching dashboard...';
-  try{
-    const r=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1200,messages:[{role:'user',content:`I need you to extract trip expense data from this travel dashboard URL: ${url}\n\nBased on the URL and any context you have, return ONLY valid JSON (no markdown, no backticks):\n{"trip":"trip name and year","dates":"date range or year","days":N,"countries":N,"gross":N,"net":N,"url":"${url}","cats":[{"name":"category name","amt":N,"pct":N}],"insights":["2-3 word insight with bold key figure"]}\n\nIf you cannot determine exact figures, use 0 for numbers and note uncertainty in insights.`}]})});
-    const data=await r.json();
-    if(!data.content){status.textContent='Could not parse. Try again.';return;}
-    const parsed=JSON.parse(data.content[0].text.replace(/```json|```/g,'').trim());
-    if(parsed.trip){
-      STATE.extraCosts.push(parsed);
-      sec();
-      document.getElementById('cost-cards').innerHTML='';
-      initCosts();
-      document.getElementById('cost-url').value='';
-      status.textContent='Dashboard loaded.';
-      setTimeout(()=>status.textContent='',3000);
-    } else {
-      status.textContent='Could not parse dashboard data.';
-    }
-  }catch(e){status.textContent='Error: '+e.message;}
+
+// Country name aliases for GeoJSON matching
+const NAME_ALIASES={
+  'USA':'United States of America',
+  'United States':'United States of America',
+  'UK':'United Kingdom',
+  'England':'United Kingdom',
+  'Great Britain':'United Kingdom',
+  'UAE':'United Arab Emirates',
+  'Dubai':'United Arab Emirates',
+  'Tanzania':'United Republic of Tanzania',
+  'Bolivia':'Bolivia (Plurinational State of)',
+  'Venezuela':'Venezuela (Bolivarian Republic of)',
+  'South Korea':'Republic of Korea',
+  'Korea':'Republic of Korea',
+  'North Korea':"Dem. Rep. Korea",
+  'Russia':'Russian Federation',
+  'Iran':'Iran (Islamic Republic of)',
+  'Syria':'Syrian Arab Republic',
+  'Vietnam':'Viet Nam',
+  'Czech Republic':'Czechia',
+  'Macedonia':'North Macedonia',
+  'Bosnia':'Bosnia and Herzegovina',
+  'Trinidad':'Trinidad and Tobago',
+  'Saint Lucia':'St. Lucia',
+  'Saint Kitts':'St. Kitts and Nevis',
+  'Saint Vincent':'St. Vin. and Gren.',
+  'Grenada':'Grenada',
+  'Antigua':'Antigua and Barb.',
+  'Laos':"Lao PDR",
+  'Taiwan':'Taiwan',
+  'Ivory Coast':"Côte d'Ivoire",
+  'Congo':'Congo',
+  'DR Congo':'Dem. Rep. Congo',
+  'DR Congo':'Democratic Republic of the Congo',
+  'Eswatini':'eSwatini',
+  'Cape Verde':'Cabo Verde',
+  'Guinea-Bissau':'Guinea-Bissau',
+  'Equatorial Guinea':'Eq. Guinea',
+  'South Sudan':'S. Sudan',
+  'Central African Republic':'Central African Rep.',
+  'Dominican Republic':'Dominican Rep.',
+  'Papua New Guinea':'Papua New Guinea'
+};
+function matchCountry(geoName, highlight){
+  const g=geoName.toLowerCase().trim();
+  // Build reverse lookup too - GeoJSON name -> our name
+  return highlight.some(c=>{
+    const alias=(NAME_ALIASES[c]||c).toLowerCase().trim();
+    const cv=c.toLowerCase().trim();
+    // Check: geo === our name, OR geo === alias of our name
+    if(g===cv||g===alias) return true;
+    // Also check reverse: does any alias value match geo?
+    const reverseMatch=Object.entries(NAME_ALIASES).some(([k,v])=>
+      v.toLowerCase().trim()===g && k.toLowerCase().trim()===cv
+    );
+    return reverseMatch;
+  });
 }
+function buildMap(highlight){
+  const mapDiv=document.getElementById('d3-map');
+  if(!mapDiv) return;
+  mapDiv.innerHTML='<p style="color:var(--text3);font-size:12px;padding:20px;text-align:center">Loading map...</p>';
+  function render(world){
+    const w=mapDiv.offsetWidth||700, h=400;
+    const countries110=topojson.feature(world,world.objects.countries);
+    // Name lookup from numeric ID - we use a simple name map
+    const nameMap=window._countryNameMap||{};
+    mapDiv.innerHTML='';
+    const svg=d3.select('#d3-map').append('svg')
+      .attr('width','100%').attr('height',h)
+      .style('background','var(--bg3)').style('border-radius','var(--r)');
+    const proj=d3.geoNaturalEarth1().scale(w/6.5).translate([w/2,h/2]);
+    const path=d3.geoPath().projection(proj);
+    // Sphere background
+    svg.append('path').datum({type:'Sphere'})
+      .attr('d',path).attr('fill','#111').attr('stroke','rgba(255,255,255,0.05)').attr('stroke-width',0.5);
+    // Graticule
+    svg.append('path').datum(d3.geoGraticule()())
+      .attr('d',path).attr('fill','none').attr('stroke','rgba(255,255,255,0.04)').attr('stroke-width',0.3);
+    // Countries
+    svg.selectAll('.country')
+      .data(countries110.features)
+      .enter().append('path')
+      .attr('class','country')
+      .attr('d',path)
+      .attr('fill',f=>{
+        const name=nameMap[f.id]||f.properties.name||'';
+        const hit=matchCountry(name, highlight);
+        return hit?'#8fb89a':'#1e2a1e';
+      })
+      .attr('stroke','rgba(255,255,255,0.08)')
+      .attr('stroke-width',0.4)
+      .append('title').text(f=>nameMap[f.id]||f.properties.name||'');
+  }
+  // Load D3 + topojson + world atlas if needed, then render
+  function go(){
+    if(!window._worldData){
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+        .then(r=>r.json()).then(w=>{window._worldData=w;render(w);})
+        .catch(()=>{mapDiv.innerHTML='<p style="color:var(--red);font-size:12px;padding:20px;text-align:center">Could not load map. Check internet connection.</p>';});
+    } else {render(window._worldData);}
+  }
+  function loadScript(src,cb){const s=document.createElement('script');s.src=src;s.onload=cb;document.head.appendChild(s);}
+  if(!window.d3&&!window.topojson){
+    loadScript('https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js',()=>{
+      loadScript('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js',()=>{
+        // Build name map from country ISO numeric IDs
+        fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+          .then(r=>r.json()).then(w=>{
+            // Use d3 built-in country names if available, else fallback
+            window._worldData=w;
+            window._countryNameMap={};
+            render(w);
+          });
+      });
+    });
+  } else if(!window.topojson){
+    loadScript('https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js',go);
+  } else {go();}
+}
+
+function closeCostModal(){document.getElementById('country-modal').style.display='none';document.body.style.overflow='';}
+function changeCostCurrency(i,cur){if(i<COST_BASE.length)COST_BASE[i].currency=cur;else STATE.extraCosts[i-COST_BASE.length].currency=cur;sec();renderCostCards();}
+function removeCost(i){STATE.extraCosts.splice(i,1);sec();activeCostFilter='all';initCosts();}
+
 
 // ═══ AI CHAT ═════════════════════════════════════════════════════
 const CH=[];
